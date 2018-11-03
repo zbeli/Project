@@ -16,64 +16,78 @@ uint32_t tobinary(uint32_t x){
 
 int main(void){
 
+int r_size = 92;
+	char R[r_size];
+	R[0] = '!';
+	for(int i=1 ; i<r_size ; i++){
+		R[i] = R[i-1]+1;
+	} 
+	for(int i=0 ; i<r_size ; i++){
+		printf("%c ",R[i] );
+	}
+	printf("\n");
 
-// uint64_t numTuples|uint64_t numColumns|uint64_t T0C0|
-// uint64_t T1C0|..|uint64_t TnC0|uint64_t T0C1|..|
-// uint64_t TnC1|..|uint64_t TnCm
+int s_size = 92;
+	char S[s_size];
+	S[s_size-1] = '!';
+	for(int i=s_size-2 ; i>=0 ; i--){
+		S[i] = S[i+1]+1;
+	} 
+	for(int i=0 ; i<s_size ; i++){
+		printf("%c ",S[i]) ;
+	}
+	printf("\n");
 
-	//Table R
-	char R[10][3] = {
-		{'a', 'e', 'i'},
-		{'b', 'f', 'j'},
-		{'c', 'g', 'k'},
-		{'a', 'h', 'k'},
-		{'e', 'h', 'k'},
-		{'f', 'h', 'k'},
-		{'c', 'h', 'k'},
-		{'b', 'h', 'k'},
-		{'h', 'h', 'k'},
-		{'a', 'h', 'k'},
-	};
+/*
+int r_size = 32;
+	char R[r_size];
+	for(int i=0 ; i<r_size ; i++){
+		R[i] = 'A' + (random()%26);
+	} 
+	for(int i=0 ; i<r_size ; i++){
+		printf("%c ",R[i] );
+	}
+	printf("\n");
 
-	char S[10][2] = {
-		{'a','e'},
-		{'b','s'},
-		{'w','e'},
-		{'d','e'},
-		{'c','e'},
-		{'e','e'},
-		{'l','e'},
-		{'q','e'},
-		{'p','e'},
-		{'q','e'},
-	};
+int s_size = 32;
+	char S[s_size];
+	for(int i=0 ; i<s_size ; i++){
+		S[i] = 'A' + (random()%26);
+	} 
+	for(int i=0 ; i<s_size ; i++){
+		printf("%c ",S[i]) ;
+	}
+	printf("\n");
 
-	int numTuples = 10;
-	int numColumns = 3;
-	int rowldRcolumns = 2;
+*/
+
 	
 	int i,j;
-	// int *rowldR = (int*) malloc(numTuples * numColumns * sizeof(int));
-
-
-    int **rowldR = (int **)malloc(numTuples * sizeof(int *)); 
-    for (i = 0; i < numTuples; i++)
-    {
-    	rowldR[i] = (int*) malloc(numColumns* sizeof(int));	
+	// int **rowldR;
+    
+    /////////////////////////////////////////
+    /////////////////////////////////////////
+    struct relation relR;
+    relR.num_tuples = r_size;
+    relR.tuples = (struct tuple*)malloc(relR.num_tuples*sizeof(struct tuple));
+    for (i = 0; i < relR.num_tuples; i++){
+    	relR.tuples[i].key = i+1;
+    	relR.tuples[i].payload = R[i];
     }
 
-    j=0;
-	for(i=0; i < numTuples; i++){
+    struct relation relS;
+    relS.num_tuples = s_size;
+    relS.tuples = (struct tuple*)malloc(relS.num_tuples*sizeof(struct tuple));
+    for (i = 0; i < relS.num_tuples; i++){
+    	relS.tuples[i].key = i+1;
+    	relS.tuples[i].payload = S[i];
+    }
 
-		rowldR[i][0] = i+1;
-		rowldR[i][1] = R[i][0];		
-	}
 
-	for (i = 0; i < numTuples; i++){
-		printf("%d %c %d\n", rowldR[i][0], rowldR[i][1], tobinary(rowldR[i][1]));
-	}
+    RadixHashJoin(&relR, &relS);
 
-	printf(" ------------ END OF PROGRAM ---------------\n");
 
-	return 0;
+    printf("End of Program.\n");
+    return 0;
+
 }

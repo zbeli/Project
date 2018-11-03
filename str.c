@@ -141,7 +141,12 @@ void RadixHashJoin(relation *relR, relation* relS){
 
 	struct relation orderedS[relS->num_tuples];
 	reorder(orderedS, relS, histS, psumS);
+
 	
+////////////
+// PART 2 //
+////////////
+
 	printf("End of Radix Hash Join\n");
 
 }

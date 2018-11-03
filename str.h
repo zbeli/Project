@@ -19,10 +19,6 @@ struct relation
 	uint32_t num_tuples;
 };
 
-struct result{
-	int something;// diko mou
-};
-
 /*Radix Hash Join*/
 
 // result* RadixHashJoin(relation *relR, relation* relS){}
@@ -32,12 +28,21 @@ typedef struct histogram{
 	uint32_t sum;
 }histogram;
 
+struct bucket{
+	int32_t* key;
+};
+
+struct chain{
+	int32_t* key;
+	int32_t num_tuples;
+};
+
 void create_histogram(histogram* histogram, relation *rel);
 void create_psum(histogram* psum,histogram * histogram, relation *rel);
 void reorder(relation * ord_rel, relation *rel, histogram* hist, histogram* psum);
 
 
-int h2_hash(char x);
+int h2_hash(uint32_t n);
 
 uint32_t tobinary(uint32_t x);
 

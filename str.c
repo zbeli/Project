@@ -146,6 +146,29 @@ void RadixHashJoin(relation *relR, relation* relS){
 ////////////
 // PART 2 //
 ////////////
+	int num_h2 = (int)pow(2,h2);
+
+struct relation temp_small_bucket;
+
+struct bucket temp_bucket;
+
+struct chain temp_chain;
+
+
+
+int i;
+int n=0;
+int h_val=0;
+int32_t* temp_key;
+
+int32_t* temp_k;
+int l=0;
+
+int b=0 ;  // trexon bucket ths h1 ths S
+
+int chain_count=0;
+	
+	
 
 	printf("End of Radix Hash Join\n");
 

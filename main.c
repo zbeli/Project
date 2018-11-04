@@ -2,20 +2,64 @@
 #include <stdlib.h>
 #include <stdint.h>
 #include <math.h>
+#include <time.h>
 
-#define h1 3
-// #define h1 12
+#include "str.h"
+#include "result.h"
 
 
-uint32_t tobinary(uint32_t x){
-	if(x==0) return 0;
-	if(x==1) return 1;
-	return (x%2 + 10*tobinary(x/2));
-}
-
+#define R_SIZE 10
+#define S_SIZE 72
+#define S_SIZE_0 216
 
 int main(void){
 
+/*	//test_case_0
+	//Table R
+int r_size = 10;
+	char R[10] = {'1','a','Z','a','d','d','c','b','G','a'};
+int s_size = 216;
+	char S[216] = {'0','1','2','3','4','5','6','7','8','9','A','B','C','D','E','F','G','H','I','J','K','L','M','N','O','P','Q','R','S','T','U','V','W','X','Y','Z',
+		'0','1','2','3','4','5','6','7','8','9','A','B','C','D','E','F','G','H','I','J','K','L','M','N','O','P','Q','R','S','T','U','V','W','X','Y','Z',
+		'0','1','2','3','4','5','6','7','8','9','A','B','C','D','E','F','G','H','I','J','K','L','M','N','O','P','Q','R','S','T','U','V','W','X','Y','Z',
+		'0','1','2','3','4','5','6','7','8','9','A','B','C','D','E','F','G','H','I','J','K','L','M','N','O','P','Q','R','S','T','U','V','W','X','Y','Z',
+		'0','1','2','3','4','5','6','7','8','9','a','b','c','d','e','f','g','h','i','j','k','l','m','n','o','p','q','r','e','t','u','v','w','x','y','z',
+		'0','1','2','3','4','5','6','7','8','9','a','b','c','d','e','f','g','h','i','j','k','l','m','n','o','p','q','r','e','t','u','v','w','x','y','z'};
+
+for(int i=0 ; i<S_SIZE ; i++){
+	printf("%c ",S[i]);
+}*/
+
+/*	//test_case_1
+	//Table R
+int r_size = 10;
+	char R[R_SIZE] = {'a','a','a','a','d','d','c','b','a','a'};
+int s_size = 72;
+	char S[S_SIZE] = {'0','1','2','3','4','5','6','7','8','9','A','B','C','D','E','F','G','H','I','J','K','L','M','N','O','P','Q','R','S','T','U','V','W','X','Y','Z',
+		'0','1','2','3','4','5','6','7','8','9','a','b','c','d','e','f','g','h','i','j','k','l','m','n','o','p','q','r','e','t','u','v','w','x','y','z'};
+
+for(int i=0 ; i<S_SIZE ; i++){
+	printf("%c ",S[i]);
+}*/
+
+
+/*	//test_case_2
+	//Table R
+int r_size = 16;
+	char R[16] = {'0','1','2','3','4','5','6','7','8','9',':',';','<', '=','>','?'};
+int s_size = 16;
+	char S[16] = {'9','8','7','6','5','4','3','2','1','0',':',';','<','=','>','?'};
+*/
+
+/*	//test_case_7
+	//Table R
+int r_size = 20;
+	char R[20] = {'0','1','2','3','4','5','6','7','8','9',':',';','<', '=','>','?','a','b','c','='};
+int s_size = 16;
+	char S[16] = {'9','8','7','6','5','4','3','2','1','0',':',';','<','=','>','?'};
+*/
+
+/*	//test_case_3
 int r_size = 92;
 	char R[r_size];
 	R[0] = '!';
@@ -37,36 +81,115 @@ int s_size = 92;
 		printf("%c ",S[i]) ;
 	}
 	printf("\n");
+*/
 
-/*
-int r_size = 32;
+	//test_case_3
+srand(time(NULL));
+
+int r_size = 32768;
 	char R[r_size];
 	for(int i=0 ; i<r_size ; i++){
-		R[i] = 'A' + (random()%26);
+		R[i] = 'A' + (rand()%26);
 	} 
 	for(int i=0 ; i<r_size ; i++){
 		printf("%c ",R[i] );
 	}
 	printf("\n");
 
-int s_size = 32;
+int s_size = 32768;
 	char S[s_size];
 	for(int i=0 ; i<s_size ; i++){
-		S[i] = 'A' + (random()%26);
+		S[i] = 'A' + (rand()%26);
 	} 
 	for(int i=0 ; i<s_size ; i++){
 		printf("%c ",S[i]) ;
 	}
 	printf("\n");
 
+
+
+/*	//test_case_4	//monadiaioi pinakes
+int r_size = 100;
+	char R[r_size];
+	for(int i=0 ; i<r_size ; i++){
+		R[i] = '1';
+	} 
+	for(int i=0 ; i<r_size ; i++){
+		printf("%c ",R[i] );
+	}
+	printf("\n");
+
+int s_size = 100;
+	char S[s_size];
+	for(int i=0 ; i<s_size ; i++){
+		S[i] = '1';
+	} 
+	for(int i=0 ; i<s_size ; i++){
+		printf("%c ",S[i]) ;
+	}
+	printf("\n");*/
+
+
+/*	//test_case_5	//perittoi artioi
+int r_size = 5;
+	char R[r_size];
+	for(int i=0 ; i<r_size ; i++){
+		R[i] = '1'+i*2;
+	} 
+	for(int i=0 ; i<r_size ; i++){
+		printf("%c ",R[i] );
+	}
+	printf("\n");
+
+int s_size = 5;
+	char S[s_size];
+	for(int i=0 ; i<s_size ; i++){
+		S[i] = '0'+i*2;
+	} 
+	for(int i=0 ; i<s_size ; i++){
+		printf("%c ",S[i]) ;
+	}
+	printf("\n");	 
 */
 
-	
-	int i,j;
-	// int **rowldR;
-    
+
+/*	//test_case_6  // R==S
+int r_size = 10;
+	char R[r_size];
+	for(int i=0 ; i<r_size ; i++){
+		R[i] = '0'+i;
+	} 
+	for(int i=0 ; i<r_size ; i++){
+		printf("%c ",R[i] );
+	}
+	printf("\n");
+
+int s_size = 10;
+	char S[s_size];
+	for(int i=0 ; i<s_size ; i++){
+		S[i] = '0'+i;
+	} 
+	for(int i=0 ; i<s_size ; i++){
+		printf("%c ",S[i]) ;
+	}
+	printf("\n");	
+*/
+
+/*	//test_case_8
+	//Table R
+int r_size = 2;
+	char R[2] = {'0','1'};
+int s_size = 16;
+	char S[16] = {'9','8','1','6','5','4','3','2','1','1',':',';','<','1','>','1'};
+*/
+
+
+ 
     /////////////////////////////////////////
     /////////////////////////////////////////
+    int i,j;
+    result* res;
+
     struct relation relR;
     relR.num_tuples = r_size;
     relR.tuples = (struct tuple*)malloc(relR.num_tuples*sizeof(struct tuple));
@@ -84,10 +207,16 @@ int s_size = 32;
     }
 
 
-    RadixHashJoin(&relR, &relS);
+    res = RadixHashJoin(&relR, &relS);
+    print_result(res);
 
+    free(relR.tuples);
+    free(relS.tuples);
+
+    free_result(res);
+    //free_result2(res->start_list);
 
     printf("End of Program.\n");
-    return 0;
-
+	return 0;
 }
+

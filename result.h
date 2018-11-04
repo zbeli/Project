@@ -6,7 +6,7 @@
 #include <stdint.h>
 #include <math.h>
 
-#define BUFFER 16
+#define BUFFER 1048576	/* 1024*1024 */
 
 struct node{
 
@@ -28,5 +28,8 @@ void insert_result(int rowR, int rowS ,result* result);
 /*Printing of the results list*/
 void print_result(result* result);
 
+void free_result(result* res);
+
+void free_result2(struct node* temp);
 
 #endif /*result.h*/

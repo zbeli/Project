@@ -2,6 +2,7 @@
 #include <stdlib.h>
 #include <stdint.h>
 #include <math.h>
+#include <time.h>
 
 #include "str.h"
 #include "result.h"
@@ -13,11 +14,7 @@
 
 int main(void){
 
-// uint64_t numTuples|uint64_t numColumns|uint64_t T0C0|
-// uint64_t T1C0|..|uint64_t TnC0|uint64_t T0C1|..|
-// uint64_t TnC1|..|uint64_t TnCm
-
-	//test_case_0
+/*	//test_case_0
 	//Table R
 int r_size = 10;
 	char R[10] = {'1','a','Z','a','d','d','c','b','G','a'};
@@ -29,11 +26,9 @@ int s_size = 216;
 		'0','1','2','3','4','5','6','7','8','9','a','b','c','d','e','f','g','h','i','j','k','l','m','n','o','p','q','r','e','t','u','v','w','x','y','z',
 		'0','1','2','3','4','5','6','7','8','9','a','b','c','d','e','f','g','h','i','j','k','l','m','n','o','p','q','r','e','t','u','v','w','x','y','z'};
 
-printf("-------- S ---------\n");
 for(int i=0 ; i<S_SIZE ; i++){
 	printf("%c ",S[i]);
-}
-printf("---------------------\n");
+}*/
 
 /*	//test_case_1
 	//Table R
@@ -45,8 +40,8 @@ int s_size = 72;
 
 for(int i=0 ; i<S_SIZE ; i++){
 	printf("%c ",S[i]);
-}
-*/
+}*/
+
 
 /*	//test_case_2
 	//Table R
@@ -88,28 +83,30 @@ int s_size = 92;
 	printf("\n");
 */
 
-/*	//test_case_3
-int r_size = 32;
+	//test_case_3
+srand(time(NULL));
+
+int r_size = 32768;
 	char R[r_size];
 	for(int i=0 ; i<r_size ; i++){
-		R[i] = 'A' + (random()%26);
+		R[i] = 'A' + (rand()%26);
 	} 
 	for(int i=0 ; i<r_size ; i++){
 		printf("%c ",R[i] );
 	}
 	printf("\n");
 
-int s_size = 32;
+int s_size = 32768;
 	char S[s_size];
 	for(int i=0 ; i<s_size ; i++){
-		S[i] = 'A' + (random()%26);
+		S[i] = 'A' + (rand()%26);
 	} 
 	for(int i=0 ; i<s_size ; i++){
 		printf("%c ",S[i]) ;
 	}
 	printf("\n");
 
-*/
+
 
 /*	//test_case_4	//monadiaioi pinakes
 int r_size = 100;
@@ -122,7 +119,7 @@ int r_size = 100;
 	}
 	printf("\n");
 
-int s_size = 10;
+int s_size = 100;
 	char S[s_size];
 	for(int i=0 ; i<s_size ; i++){
 		S[i] = '1';
@@ -130,8 +127,8 @@ int s_size = 10;
 	for(int i=0 ; i<s_size ; i++){
 		printf("%c ",S[i]) ;
 	}
-	printf("\n");	
-*/
+	printf("\n");*/
+
 
 /*	//test_case_5	//perittoi artioi
 int r_size = 5;
@@ -211,7 +208,13 @@ int s_size = 16;
 
 
     res = RadixHashJoin(&relR, &relS);
-    // print_result(res);
+    print_result(res);
+
+    free(relR.tuples);
+    free(relS.tuples);
+
+    free_result(res);
+    //free_result2(res->start_list);
 
     printf("End of Program.\n");
 	return 0;

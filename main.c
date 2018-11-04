@@ -4,6 +4,8 @@
 #include <math.h>
 
 #include "str.h"
+#include "result.h"
+
 
 #define R_SIZE 10
 #define S_SIZE 72
@@ -189,6 +191,7 @@ int s_size = 16;
     /////////////////////////////////////////
     /////////////////////////////////////////
     int i,j;
+    result* res;
 
     struct relation relR;
     relR.num_tuples = r_size;

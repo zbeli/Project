@@ -1,4 +1,5 @@
 #include "str.h"
+// #include "result.h"
 
 
 uint32_t tobinary(uint32_t x){
@@ -112,9 +113,8 @@ void reorder(relation * ord_rel, relation *rel, histogram* hist, histogram* psum
 */
 }
 
-/*Radix Hash Join*/
-// result* RadixHashJoin(relation *relR, relation* relS){}
-
+/*******************	Radix Hash Join 	*****************/
+// result* RadixHashJoin(relation *relR, relation* relS){
 void RadixHashJoin(relation *relR, relation* relS){
 
 //////////////
@@ -161,7 +161,7 @@ printf("<------------------->\n");
 //////////////
 //  PART 2  //
 //////////////
-	int num_h2 = (int)pow(2,h2);
+int num_h2 = (int)pow(2,h2);
 
 struct relation temp_small_bucket;
 
@@ -401,15 +401,15 @@ else{   // S < R
 //printf("\n");
 
 }  // b
-free(temp_bucket.key);
+	free(temp_bucket.key);
 
-printf("COUNTER %d\n",counter);
+	printf("COUNTER %d\n",counter);
 
-print_result(&result);
+	print_result(&result);
 
-printf("\n");
+	printf("\n");
 	printf("\nEnd of Radix Hash Join\n");
-
+	// return &result;
 
 }
 
@@ -418,7 +418,7 @@ printf("\n");
 /////////////////////////////////////////
 /////////////////////////////////////////
 
-void result_init(result* result){
+/*void result_init(result* result){
 
 	result->start_list = (struct node*)malloc(sizeof(struct node));
 	result->start_list -> buffer_start = (void*)malloc(BUCKET_SIZE);	
@@ -517,7 +517,7 @@ void print_result(result* result){
 		}
 	}
 	printf("\n");
-}
+}*/
 
 
 

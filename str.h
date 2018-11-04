@@ -6,6 +6,9 @@
 #include <stdint.h>
 #include <math.h>
 
+#include "result.h"
+
+
 #define h1 3
 #define h2 2
 
@@ -13,18 +16,15 @@
 
 typedef struct relation relation;
 /*Type definition for tuple*/
-struct tuple
-{
+struct tuple{
 	int32_t key;
 	int32_t payload;
-	
 };
 
 /*Type definition for relation
 it consists of an array of tuples and a size of the relation*/
 
-struct relation
-{
+struct relation{
 	struct tuple *tuples;
 	uint32_t num_tuples;
 };
@@ -59,17 +59,9 @@ uint32_t tobinary(uint32_t x);
 // result* RadixHashJoin(relation *relR, relation* relS);
 void RadixHashJoin(relation *relR, relation* relS);
 
-
-
-
-
-
-
-//////////////////
-//////////////////
-/////////////////
-
-struct node{
+//////////////////////////////////////////
+/////////////////////////////////////////
+/*struct node{
 
 	void* buffer;			//free space in the begining of the buffer
 	void* buffer_start;	   //pointer to the start of the buffer
@@ -81,11 +73,13 @@ typedef struct result{
 	struct node *start_list; //pointer to the first 
 							 //node of the list
 	int list_size;
-}result;
+}result;*/
 
 
-void result_init(result* result);
-void insert_result(int rowR, int rowS ,result* result);
-void print_result(result* result);
+// void result_init(result* result);
+// void insert_result(int rowR, int rowS ,result* result);
+// void print_result(result* result);
+//////////////////////////////////////////
+/////////////////////////////////////////
 
 #endif /*str.h*/

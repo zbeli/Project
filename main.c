@@ -31,7 +31,7 @@ printf("-------- S ---------\n");
 for(int i=0 ; i<S_SIZE ; i++){
 	printf("%c ",S[i]);
 }
-
+printf("---------------------\n");
 
 /*	//test_case_1
 	//Table R

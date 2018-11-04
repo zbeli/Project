@@ -1,6 +1,6 @@
 #include "str.h"
-// #include "result.h"
 
+result results; 
 
 uint32_t tobinary(uint32_t x){
 	if(x==0) return 0;
@@ -58,7 +58,6 @@ void create_psum(histogram* psum,histogram * histogram, relation *rel){
 
 	psum[0].value = histogram[0].value; //first element
 	for (i = 1; i < hist_rows; i++){
-
 		psum[i].value = histogram[i].value;
 		psum[i].sum = psum[i-1].sum + histogram[i-1].sum;
 	}
@@ -113,16 +112,19 @@ void reorder(relation * ord_rel, relation *rel, histogram* hist, histogram* psum
 */
 }
 
+/*************************************************************/
 /*******************	Radix Hash Join 	*****************/
-// result* RadixHashJoin(relation *relR, relation* relS){
-void RadixHashJoin(relation *relR, relation* relS){
+/***********************************************************/
+
+result* RadixHashJoin(relation *relR, relation* relS){
+// void RadixHashJoin(relation *relR, relation* relS){
 
 //////////////
 //  PART 1  //
 //////////////	
 	int hist_rows = (int)pow(2,h1);
 
-	//  S  //
+	/*	S 	*/
 	printf("Relation S\n");
 
 	histogram histS[hist_rows];
@@ -141,7 +143,7 @@ printf(" S            ORDERED_S \n");
 
 printf("<------------------->\n");
 
-	//  R  //
+	/*	R 	*/
 	printf("Relation R\n");
 
 	histogram histR[hist_rows];
@@ -152,6 +154,7 @@ printf("<------------------->\n");
 
 	struct relation orderedR[relR->num_tuples];
 	reorder(orderedR, relR, histR, psumR);
+
 printf(" R            ORDERED_R \n");
     for (int i = 0; i < relR->num_tuples; i++){
     	printf("%d | %c   <--->   %d | %c\n", relR->tuples[i].key, relR->tuples[i].payload, orderedR->tuples[i].key, orderedR->tuples[i].payload);
@@ -187,8 +190,8 @@ temp_bucket.key = (int32_t*)malloc(num_h2*sizeof(int32_t));
 
 
 ////////////////////////
-result result;
-result_init(&result);
+// result result;
+result_init(&results);
 ////////////////////////
 
 int counter=0;
@@ -289,7 +292,7 @@ if( histS[b].sum <= histR[b].sum ){
 			if( temp_small_bucket.tuples[*temp_k].payload == orderedR->tuples[r].payload ){
 			//if( tobinary((uint32_t) temp_small_bucket.tuples[*temp_k].payload ) == tobinary((uint32_t) orderedR->tuples[r].payload) ){
 				printf("%d) R(%d %c)-S(%d %c) \n", h_val, orderedR->tuples[r].key , orderedR->tuples[r].payload , temp_small_bucket.tuples[(*temp_k)].key, temp_small_bucket.tuples[(*temp_k)].payload);
-				insert_result( orderedR->tuples[r].key, temp_small_bucket.tuples[(*temp_k)].key , &result);
+				insert_result( orderedR->tuples[r].key, temp_small_bucket.tuples[(*temp_k)].key , &results);
 				counter++;
 			}
 			temp_k = &( temp_chain.key[(*temp_k)] );
@@ -371,7 +374,7 @@ else{   // S < R
 	}
 	printf("\n");
 
-//////////////////     JOIN     ///////////////////
+	//////////////////     JOIN     ///////////////////
 
 	printf("\n");
 	printf("JOIN %d\n", b);
@@ -383,7 +386,7 @@ else{   // S < R
 			if( temp_small_bucket.tuples[*temp_k].payload == orderedS->tuples[r].payload ){
 			//if( tobinary((uint32_t) temp_small_bucket.tuples[*temp_k].payload ) == tobinary((uint32_t) orderedS->tuples[r].payload ) ){
 				printf("%d) R(%d %c)-S(%d %c) \n", h_val, temp_small_bucket.tuples[(*temp_k)].key, temp_small_bucket.tuples[(*temp_k)].payload, orderedS->tuples[r].key , orderedS->tuples[r].payload);
-				insert_result( temp_small_bucket.tuples[(*temp_k)].key, orderedS->tuples[r].key, &result);
+				insert_result( temp_small_bucket.tuples[(*temp_k)].key, orderedS->tuples[r].key, &results);
 				counter++;
 			}
 			temp_k = &( temp_chain.key[(*temp_k)] );
@@ -405,11 +408,11 @@ else{   // S < R
 
 	printf("COUNTER %d\n",counter);
 
-	print_result(&result);
+	print_result(&results);
 
 	printf("\n");
 	printf("\nEnd of Radix Hash Join\n");
-	// return &result;
+	return &results;
 
 }
 

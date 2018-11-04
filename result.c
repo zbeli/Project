@@ -13,37 +13,22 @@ void result_init(result* result){
 
 void insert_result(int rowR, int rowS ,result* result){
 	
-	int static call = 0;
-	call++;
-	// result.list_size++;
-
-	
 	int i;
 	int * ptr;
 	struct node *current_node;
 	current_node = result->start_list;
 
-	// printf("\n%d call of function: , List: %d\n", call, result->list_size );
-	// printf("Beginning of the list:%p , Size: %d\n\n", result->start_list, result->list_size);
-
-	//go to the bucket 
+	//Go to the current bucket 
 	for (i = 1; i < result->list_size; i++){
 		if(current_node -> next != NULL){
 			current_node = current_node -> next;
 		}
 	}
 
-	//an o xwros tou buffer einai arketos apothikeuse alliws 
-	//desmeuse xwro
-
-	// Allocate new bucket
+	// Allocate new bucket if necessary
 	if(current_node -> buffer_end - current_node->buffer < 2*sizeof(int)){
 		//printf("New bucket\n");
 
-		// if(current_node -> next == NULL)
-		// 	printf("CORRECT\n");
-		// else 
-		// 	printf("WRONG\n");
 		current_node -> next = (struct node*)malloc(sizeof(struct node));
 		current_node -> next -> buffer_start = (void*)malloc(BUFFER);
 		
@@ -54,22 +39,17 @@ void insert_result(int rowR, int rowS ,result* result){
 		current_node -> next = NULL;
 
 		result->list_size++;
-		// printf("======================== > %d\n", result->list_size);
 
 	}
 
 	ptr = current_node -> buffer;
 
 	*ptr = rowR;
-	// *(current_node -> buffer) = rowR;
 	current_node -> buffer = current_node -> buffer + sizeof(int);
-	ptr = current_node -> buffer ;
-
+	ptr = current_node -> buffer;
 	*ptr = rowS;
-	// *(current_node -> buffer) = rowS;
 	current_node -> buffer = current_node -> buffer + sizeof(int);
 
-	// ptr = ptr + 4;
 }
 
 void print_result(result* result){

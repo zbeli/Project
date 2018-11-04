@@ -56,8 +56,8 @@ uint32_t tobinary(uint32_t x);
 
 
 /*Radix Hash Join*/
-// result* RadixHashJoin(relation *relR, relation* relS);
-void RadixHashJoin(relation *relR, relation* relS);
+result* RadixHashJoin(relation *relR, relation* relS);
+// void RadixHashJoin(relation *relR, relation* relS);
 
 //////////////////////////////////////////
 /////////////////////////////////////////

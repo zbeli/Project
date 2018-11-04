@@ -210,8 +210,8 @@ int s_size = 16;
     }
 
 
-    RadixHashJoin(&relR, &relS);
-
+    res = RadixHashJoin(&relR, &relS);
+    // print_result(res);
 
     printf("End of Program.\n");
 	return 0;

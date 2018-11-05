@@ -8,7 +8,6 @@
 
 #include "result.h"
 
-
 #define h1 12
 #define h2 8
 

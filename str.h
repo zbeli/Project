@@ -8,11 +8,16 @@
 
 #include "result.h"
 
+#define h1 12
+#define h2 8
 
+<<<<<<< HEAD
 #define h1 3
 #define h2 2
 
 // #define BUCKET_SIZE 16
+=======
+>>>>>>> 9b289be115eef550d7d75d0653feaa1000cccddc
 
 typedef struct relation relation;
 /*Type definition for tuple*/
@@ -48,7 +53,10 @@ void create_histogram(histogram* histogram, relation *rel);
 void create_psum(histogram* psum,histogram * histogram, relation *rel);
 void reorder(relation * ord_rel, relation *rel, histogram* hist, histogram* psum);
 
+<<<<<<< HEAD
 /*Hash functions*/
+=======
+>>>>>>> 9b289be115eef550d7d75d0653feaa1000cccddc
 int h1_hash(uint32_t n);
 int h2_hash(uint32_t n);
 
@@ -57,7 +65,10 @@ uint32_t tobinary(uint32_t x);
 
 /*Radix Hash Join*/
 result* RadixHashJoin(relation *relR, relation* relS);
+<<<<<<< HEAD
 // void RadixHashJoin(relation *relR, relation* relS);
+=======
+>>>>>>> 9b289be115eef550d7d75d0653feaa1000cccddc
 
 
 #endif /*str.h*/

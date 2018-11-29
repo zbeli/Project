@@ -70,7 +70,6 @@ void print_result(result* result){
 			
 			printf("%d ", *(int*)temp);
 			temp = temp + sizeof(int);
-			// printf("%d\n", current_node->buffer);
 		}
 		printf("| ");
 		if(current_node->next != NULL){
@@ -79,4 +78,19 @@ void print_result(result* result){
 		}
 	}
 	printf("\n");
+}
+
+void free_result(result* res){
+	struct node *cur_node, *next_n;
+
+    cur_node = res->start_list;
+    while(cur_node != NULL){
+    	next_n = cur_node->next;
+
+    	free(cur_node->buffer_start);
+    	cur_node->buffer_start = NULL;
+    	free(cur_node);
+    	cur_node =NULL;
+    	cur_node = next_n;
+    }
 }

@@ -9,7 +9,7 @@
 
 int main(void){
 
-/*	//test_case_0
+	//test_case_0
 	//Table R
 	int r_size = 10;
 	char R[10] = {'1','a','Z','a','d','d','c','b','G','a'};
@@ -23,7 +23,7 @@ int main(void){
 
 	for(int i=0 ; i<216 ; i++){
 		printf("%c ",S[i]);
-	}*/
+	}
 
 /*	//test_case_1
 	//Table R
@@ -79,7 +79,7 @@ int main(void){
 
 
 	//test_case_3
-	srand(time(NULL));
+/*	srand(time(NULL));
 
 	int r_size = 4096;
 	char R[r_size];
@@ -99,7 +99,7 @@ int main(void){
 	for(int i=0 ; i<s_size ; i++){
 		printf("%c ",S[i]) ;
 	}
-	printf("\n");
+	printf("\n");*/
 
 
 

@@ -157,16 +157,7 @@ result* RadixHashJoin(relation *relR, relation* relS){
     }
 	
 	printf("<------------------->\n");
-//////////////////////////////////
-<<<<<<< HEAD
-//	Arxikopoihsh 		//
-//	-temp_small_bucket	//
-//	-temp_bucket		//
-//	-temp_chain		    //
-=======
-//  PART 2 - xtisimo eurethtiwn //
->>>>>>> 9b289be115eef550d7d75d0653feaa1000cccddc
-//////////////////////////////////
+
 	int num_h2 = (int)pow(2,h2);
 
 	struct relation temp_small_bucket;
@@ -403,9 +394,4 @@ result* RadixHashJoin(relation *relR, relation* relS){
 
 }
 
-<<<<<<< HEAD
 
-
-
-=======
->>>>>>> 9b289be115eef550d7d75d0653feaa1000cccddc

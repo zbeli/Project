@@ -7,8 +7,8 @@
 
 /*information about relations*/
 struct file_info {
-	uint64_t num_tup;	//number of tuples
-	uint64_t num_col;	//number of columns
+	uint64_t num_tup;   //number of tuples
+	uint64_t num_col;   //number of columns
 
 	uint64_t **col_array; //array of pointers to the columns of the relation
 

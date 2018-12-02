@@ -8,27 +8,27 @@ uint32_t tobinary(uint32_t x){
 	return (x%2 + 10*tobinary(x/2));
 }
 
-int h1_hash(uint32_t n){				//////////////////////////////////
-	return (n & (1 << h1)-1);  			//								//
-}										//      an h1=4 kai h2=6		//
-										//								//
-int h2_hash(uint32_t n){				//  ... 1001 1101 1111 0011		//
-	n = n >> h1;						//	 	       ^     ^ ^  ^		//
-	return (n & (1 << h2)-1);  			//             < h2  > <h1>		//
-}										//////////////////////////////////
+int h1_hash(uint32_t n){                //////////////////////////////////
+    return (n & (1 << h1)-1);           //                              //
+}                                       //      an h1=4 kai h2=6        //
+                                        //                              //
+int h2_hash(uint32_t n){                //  ... 1001 1101 1111 0011     //
+    n = n >> h1;                        //             ^     ^ ^  ^     //
+    return (n & (1 << h2)-1);           //             < h2  > <h1>     //
+}                                       //////////////////////////////////
 
 
 void create_histogram(histogram* histogram, relation *rel){
 	int i, h_val;
 	int hist_rows = (int)pow(2,h1);
 	uint32_t n;
-	
+
 	//initialize histogram
 	for (i = 0; i < hist_rows; i++){
 		histogram[i].value = i;
 		histogram[i].sum = 0;
 	}
-	
+
 	for(i = 0; i < rel -> num_tuples; i++){
 		n = tobinary((uint32_t)rel->tuples[i].payload);
 		h_val = h1_hash(n);
@@ -38,7 +38,7 @@ void create_histogram(histogram* histogram, relation *rel){
 
 	printf(" Histogram %d tuples\n",rel->num_tuples);
 	for (i = 0; i < hist_rows; i++){
-		printf("%d| %d\n", histogram[i].value, histogram[i].sum);		
+		printf("%d| %d\n", histogram[i].value, histogram[i].sum);
 	}
 }
 
@@ -110,7 +110,7 @@ void reorder(relation * ord_rel, relation *rel, histogram* hist, histogram* psum
 }
 
 /*************************************************************/
-/*******************	Radix Hash Join 	*****************/
+/*******************    Radix Hash Join     *****************/
 /***********************************************************/
 
 result* RadixHashJoin(relation *relR, relation* relS){
@@ -188,10 +188,10 @@ result* RadixHashJoin(relation *relR, relation* relS){
 
 	for( b=0 ; b<hist_rows ; b++){
 	//////////////////////////////////
-	//		Arxikopoihsh 			//
-	//		-temp_small_bucket		//
-	//		-temp_bucket			//
-	//		-temp_chain				//
+	//      Arxikopoihsh            //
+	//      -temp_small_bucket      //
+	//      -temp_bucket            //
+	//      -temp_chain             //
 	//////////////////////////////////
 
 		//printf("<------------------------------------------------------------------------------------>\n");

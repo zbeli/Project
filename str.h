@@ -12,6 +12,7 @@
 #define h2 8
 
 
+
 typedef struct relation relation;
 /*Type definition for tuple*/
 struct tuple{
@@ -26,7 +27,6 @@ struct relation{
 	struct tuple *tuples;
 	uint32_t num_tuples;
 };
-
 
 typedef struct histogram{
 	uint32_t value;
@@ -46,6 +46,9 @@ struct chain{
 void create_histogram(histogram* histogram, relation *rel);
 void create_psum(histogram* psum,histogram * histogram, relation *rel);
 void reorder(relation * ord_rel, relation *rel, histogram* hist, histogram* psum);
+
+
+/*Hash functions*/
 
 int h1_hash(uint32_t n);
 int h2_hash(uint32_t n);

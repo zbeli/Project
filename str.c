@@ -36,10 +36,10 @@ void create_histogram(histogram* histogram, relation *rel){
 		histogram[h_val].sum++;
 	}
 
-	printf(" Histogram %d tuples\n",rel->num_tuples);
+/*	printf(" Histogram %d tuples\n",rel->num_tuples);
 	for (i = 0; i < hist_rows; i++){
 		printf("%d| %d\n", histogram[i].value, histogram[i].sum);		
-	}
+	}*/
 }
 
 void create_psum(histogram* psum,histogram * histogram, relation *rel){
@@ -61,9 +61,9 @@ void create_psum(histogram* psum,histogram * histogram, relation *rel){
 
 	//Print Psum
 	printf(" PSUM\n");
-	for (int i = 0; i < hist_rows; i++){
+/*	for (int i = 0; i < hist_rows; i++){
 		printf("%d | %d\n", psum[i].value, psum[i].sum);
-	}
+	}*/
 }
 
 void reorder(relation * ord_rel, relation *rel, histogram* hist, histogram* psum){
@@ -270,7 +270,7 @@ result* RadixHashJoin(relation *relR, relation* relS){
 //////////////////     JOIN     ///////////////////
 
 			//printf("\n");
-			printf("JOIN %d\n", b);
+			//printf("JOIN %d\n", b);
 			for(int r=psumR[b].sum ; r<(psumR[b].sum)+(histR[b].sum) ; r++){
 				n = tobinary((uint32_t)orderedR.tuples[r].payload);
 				h_val = h2_hash(n);
@@ -360,7 +360,7 @@ result* RadixHashJoin(relation *relR, relation* relS){
 			//////////////////     JOIN     ///////////////////
 
 			//printf("\n");
-			printf("JOIN %d\n", b);
+			//printf("JOIN %d\n", b);
 			for(int r=psumS[b].sum ; r<(psumS[b].sum)+(histS[b].sum) ; r++){
 				n = tobinary((uint32_t)orderedS.tuples[r].payload);
 				h_val = h2_hash(n);

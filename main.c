@@ -3,6 +3,7 @@
 #include <stdint.h>
 #include <math.h>
 #include <time.h>
+#include <string.h>
 
 #include <string.h>
 #include <sys/mman.h>
@@ -17,7 +18,8 @@
 
 
 
-#define PATH "/home/zisis/Desktop/submission/submission/workloads/small/"
+// #define PATH "/home/zisis/Desktop/submission/submission/workloads/small/"
+#define PATH "/home/panos/Desktop/an_logismikou/submission/workloads/small/"
 
 int main(void){
 
@@ -319,7 +321,8 @@ int main(void){
 		create_col_array(&info[i], data[i]);
 
 		// printf("#####>%llu, %llu\n", info[i].num_tup, info[i].num_col);
-		printf("\n%s\tTuples: %llu\t -Columns: %llu\n", files[i], info[i].num_tup, info[i].num_col);
+		// printf("\n%s\tTuples: %llu\t -Columns: %llu\n", files[i], info[i].num_tup, info[i].num_col);
+		printf("\n%s\tTuples: %lu\t -Columns: %lu\n", files[i], info[i].num_tup, info[i].num_col);
 
 		fclose(file);
 	}
@@ -336,6 +339,129 @@ int main(void){
 
 	}
 	printf("------------------------------------------------\n");*/
+
+
+
+	FILE *work_fp;
+	char file_path[100];
+	
+	strcpy(file_path, PATH);
+	strcat(file_path, "small.work");
+
+
+	if((work_fp = fopen(file_path, "r")) == NULL){
+		printf("Error opening the file!\n");
+		exit(-1);
+	}
+
+
+	char *query;
+	size_t len=0;
+	ssize_t read;
+
+	struct query_info temp_q;
+	char *temp_rel;
+	char *temp_col;
+	char *c_token;
+	char temp_pred[20];	// xrhsimopoieitai gia thn klhsh thw insert pred
+
+	int query_len=0;
+	int field=0;	// 0 gia ti sxesei, 1 predicates, 2 provoles
+	int relations_count=1;	// poses relations xrhsimopoiountai
+	int columns_to_print_count=1;	// plithos provolwn
+	int pred_count=1; // plithos predicates
+
+	while ((read = getline(&query, &len, work_fp)) !=-1 ){
+		if(strcmp(query,"F\n")==0){		// stamataei otan diavasei F
+			break;
+		}
+		query[strlen(query)-1]='\0';
+		query_len = strlen(query);
+
+		for(i=0 ; i<query_len ; i++){
+			if(query[i]=='|'){
+				field++;
+			}
+			else if(query[i]==' '){
+				if(field==0){
+					relations_count++;
+				}
+				else if(field==2){
+					columns_to_print_count++;
+				}
+			}
+			else if(query[i]=='&'){
+				pred_count++;
+			}
+		}
+
+		printf("%s\n",query);
+		// printf("relations %d\n",relations_count);
+		// printf("columns_to_print_count %d\n",columns_to_print_count);
+		// printf("pred_count %d\n",pred_count);
+
+		temp_q.rel_count = relations_count;
+		temp_q.pred_count = pred_count;
+		temp_q.cols_count = columns_to_print_count;
+		temp_q.rels = (uint64_t*)malloc(relations_count*sizeof(uint64_t));
+		temp_q.preds = (struct predicate*)malloc(pred_count*sizeof(struct predicate));
+		temp_q.cols_to_print = (struct rel_col_tuple*)malloc(columns_to_print_count*sizeof(struct rel_col_tuple));
+
+// relations
+		i=0;
+		temp_rel = strtok(query," ");
+		// printf("(%d)%s-",i,temp_rel);
+		temp_q.rels[i] = atoi(temp_rel);
+		for(i=1 ; i<relations_count ; i++){
+			if(i==relations_count-1){
+				temp_rel = strtok(NULL,"|");
+				// printf("(%d)%s\n",i,temp_rel);
+			}
+			else{
+				temp_rel = strtok(NULL," ");
+				// printf("(%d)%s-",i,temp_rel);
+			}
+			temp_q.rels[i] = atoi(temp_rel);
+		}
+
+// predicates
+		for(i=0 ; i<pred_count ; i++){
+			if(i==relations_count-1){
+				temp_rel = strtok(NULL,"|");
+				// printf("(%d)%s\n",i,temp_rel);
+			}
+			else{
+				temp_rel = strtok(NULL,"&");
+				// printf("(%d)%s\n",i,temp_rel);
+			}
+			strcpy(temp_pred, temp_rel);	// stelnw auto sthn insert logw problhmatos me strtok()
+			insert_pred(&temp_q, temp_pred, i);
+			
+		}
+
+// columns
+		for(i=0 ; i<columns_to_print_count ; i++){
+			temp_col = strtok(NULL,".");
+			// printf("(%d)%s-",i,temp_col);
+			temp_q.cols_to_print[i].rel = atoi(temp_col);
+			temp_col = strtok(NULL," ");
+			temp_q.cols_to_print[i].col  = atoi(temp_col);
+			// printf("(%d)%s ",i,temp_col);
+		}
+
+		print_query_info(&temp_q);
+		printf("\n");
+
+		field=0;
+		relations_count=1;
+		columns_to_print_count=1;
+		pred_count=1;
+
+	// break;	//gia debbug mono gia to prwto predicate
+	}
+
+	fclose(work_fp);
+
 
 	/*Free*/
 	free(data);

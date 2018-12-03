@@ -57,7 +57,7 @@ void print_result(result* result){
 	printf("--------------- Result ---------------\n");
 	printf("List Size:%d\n", result->list_size);
 
-/*	int i;
+	int i;
 	struct node *current_node;
 	current_node = result->start_list;
 
@@ -77,7 +77,7 @@ void print_result(result* result){
 			temp = current_node->buffer_start;
 		}
 	}
-	printf("\n");*/
+	printf("\n");
 }
 
 void free_result(result* res){
@@ -93,14 +93,4 @@ void free_result(result* res){
     	cur_node =NULL;
     	cur_node = next_n;
     }
-}
-
-void free_result2(struct node* temp){
-	if(temp->next != NULL){
-		free_result2(temp->next);
-	}
-	free(temp->buffer_start);
-	temp->buffer_start = NULL;
-	free(temp);
-	temp = NULL;
 }

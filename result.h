@@ -30,6 +30,4 @@ void print_result(result* result);
 
 void free_result(result* res);
 
-void free_result2(struct node* temp);
-
 #endif /*result.h*/

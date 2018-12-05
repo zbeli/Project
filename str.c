@@ -2,6 +2,8 @@
 
 result results; 
 
+// result result_lists[4] ;
+
 uint32_t tobinary(uint32_t x){
 	if(x==0) return 0;
 	if(x==1) return 1;
@@ -134,7 +136,9 @@ result* RadixHashJoin(relation *relR, relation* relS){
 
 	printf(" S            ORDERED_S \n");
     for (int i = 0; i < relS->num_tuples; i++){
-    	printf("%d | %c   <--->   %d | %c\n", relS->tuples[i].key, relS->tuples[i].payload, orderedS.tuples[i].key , orderedS.tuples[i].payload );
+    	// printf("%d | %c   <--->   %d | %c\n", relS->tuples[i].key, relS->tuples[i].payload, orderedS.tuples[i].key , orderedS.tuples[i].payload );
+    	printf("%d | %d   <--->   %d | %d\n", relS->tuples[i].key, relS->tuples[i].payload, orderedS.tuples[i].key , orderedS.tuples[i].payload );
+
     }
 
 	printf("<------------------->\n");
@@ -153,10 +157,13 @@ result* RadixHashJoin(relation *relR, relation* relS){
 
 	printf(" R            ORDERED_R \n");
     for (int i = 0; i < relR->num_tuples; i++){
-    	printf("%d | %c   <--->   %d | %c\n", relR->tuples[i].key, relR->tuples[i].payload, orderedR.tuples[i].key, orderedR.tuples[i].payload);
+    	// printf("%d | %c   <--->   %d | %c\n", relR->tuples[i].key, relR->tuples[i].payload, orderedR.tuples[i].key, orderedR.tuples[i].payload);
+    	printf("%d | %d   <--->   %d | %d\n", relR->tuples[i].key, relR->tuples[i].payload, orderedR.tuples[i].key, orderedR.tuples[i].payload);
+
     }
 	
 	printf("<------------------->\n");
+
 
 	int num_h2 = (int)pow(2,h2);
 
@@ -195,6 +202,7 @@ result* RadixHashJoin(relation *relR, relation* relS){
 	//////////////////////////////////
 
 		//printf("<------------------------------------------------------------------------------------>\n");
+
 
 		// arxikopihsh temp_bucket
 		for(int j=0 ; j<num_h2 ; j++){

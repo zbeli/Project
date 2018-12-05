@@ -6,6 +6,7 @@
 #include <stdint.h>
 #include <math.h>
 
+
 #define BUFFER 1048576	/* 1024*1024 */
 
 struct node{

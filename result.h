@@ -7,7 +7,10 @@
 #include <math.h>
 
 
-#define BUFFER 1048576	/* 1024*1024 */
+// #define BUFFER 1048576	/* 1024*1024 */
+
+#define BUFFER 8	/* 1024*1024 */
+
 
 struct node{
 
@@ -30,5 +33,8 @@ void insert_result(int rowR, int rowS ,result* result);
 void print_result(result* result);
 
 void free_result(result* res);
+
+void insert_inter(int row, result* result);
+
 
 #endif /*result.h*/

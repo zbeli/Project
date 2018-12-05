@@ -73,6 +73,8 @@ void reorder(relation * ord_rel, relation *rel, histogram* hist, histogram* psum
 	int tuples = rel->num_tuples;
 	ord_rel -> num_tuples = tuples;
 
+	ord_rel -> rel_id = rel -> rel_id;    ///////////////////////////////////////////////////
+
 	int hist_rows = (int)pow(2,h1);
 
 	ord_rel -> tuples = (struct tuple*)malloc(tuples*sizeof(struct tuple));
@@ -134,12 +136,14 @@ result* RadixHashJoin(relation *relR, relation* relS){
 	struct relation orderedS;
 	reorder(&orderedS, relS, histS, psumS);
 
-	printf(" S            ORDERED_S \n");
+	// printf("-------------------------------------> RELATION_ID: %d %d\n", relR->rel_id, relS->rel_id);	///////////////////////////
+
+/*	printf(" S            ORDERED_S \n");
     for (int i = 0; i < relS->num_tuples; i++){
     	// printf("%d | %c   <--->   %d | %c\n", relS->tuples[i].key, relS->tuples[i].payload, orderedS.tuples[i].key , orderedS.tuples[i].payload );
     	printf("%d | %d   <--->   %d | %d\n", relS->tuples[i].key, relS->tuples[i].payload, orderedS.tuples[i].key , orderedS.tuples[i].payload );
 
-    }
+    }*/
 
 	printf("<------------------->\n");
 
@@ -155,12 +159,12 @@ result* RadixHashJoin(relation *relR, relation* relS){
 	struct relation orderedR;
 	reorder(&orderedR, relR, histR, psumR);
 
-	printf(" R            ORDERED_R \n");
+/*	printf(" R            ORDERED_R \n");
     for (int i = 0; i < relR->num_tuples; i++){
     	// printf("%d | %c   <--->   %d | %c\n", relR->tuples[i].key, relR->tuples[i].payload, orderedR.tuples[i].key, orderedR.tuples[i].payload);
     	printf("%d | %d   <--->   %d | %d\n", relR->tuples[i].key, relR->tuples[i].payload, orderedR.tuples[i].key, orderedR.tuples[i].payload);
 
-    }
+    }*/
 	
 	printf("<------------------->\n");
 
@@ -188,7 +192,7 @@ result* RadixHashJoin(relation *relR, relation* relS){
 
 	temp_bucket.key = (int32_t*)malloc(num_h2*sizeof(int32_t));
 
-	result_init(&results);
+	result_init(&results);	//////////////////////////////////////////////////////
 
 	int counter=0;
 
@@ -282,7 +286,13 @@ result* RadixHashJoin(relation *relR, relation* relS){
 				while( (*temp_k) != -1){
 					if( temp_small_bucket.tuples[*temp_k].payload == orderedR.tuples[r].payload ){
 		//				printf("%d) R(%d %c)-S(%d %c) \n", h_val, orderedR.tuples[r].key , orderedR.tuples[r].payload , temp_small_bucket.tuples[(*temp_k)].key, temp_small_bucket.tuples[(*temp_k)].payload);
-						insert_result( orderedR.tuples[r].key, temp_small_bucket.tuples[(*temp_k)].key , &results);
+					
+						// insert_result( orderedR.tuples[r].key, temp_small_bucket.tuples[(*temp_k)].key , &results);
+						
+						insert_inter(orderedR.tuples[r].key, &result_lists[orderedR.rel_id]);	                ////////////////////////////
+						insert_inter(temp_small_bucket.tuples[(*temp_k)].key , &result_lists[orderedS.rel_id]);	////////////////////////////
+
+
 						counter++;
 					}
 					temp_k = &( temp_chain.key[(*temp_k)] );
@@ -371,8 +381,13 @@ result* RadixHashJoin(relation *relR, relation* relS){
 				temp_k = & ( temp_bucket.key[h_val] ) ;
 				while( (*temp_k) != -1){
 					if( temp_small_bucket.tuples[*temp_k].payload == orderedS.tuples[r].payload ){
-		//				printf("%d) R(%d %c)-S(%d %c) \n", h_val, temp_small_bucket.tuples[(*temp_k)].key, temp_small_bucket.tuples[(*temp_k)].payload, orderedS.tuples[r].key , orderedS.tuples[r].payload);
+						// printf("%d) R(%d %c)-S(%d %c) \n", h_val, temp_small_bucket.tuples[(*temp_k)].key, temp_small_bucket.tuples[(*temp_k)].payload, orderedS.tuples[r].key , orderedS.tuples[r].payload);
+
 						insert_result( temp_small_bucket.tuples[(*temp_k)].key, orderedS.tuples[r].key, &results);
+
+						insert_inter(temp_small_bucket.tuples[(*temp_k)].key, &result_lists[orderedR.rel_id]);	  ////////////////////////////
+						insert_inter(orderedS.tuples[r].key, &result_lists[orderedS.rel_id]);	                  ////////////////////////////
+
 						counter++;
 					}
 					temp_k = &( temp_chain.key[(*temp_k)] );

@@ -525,12 +525,22 @@ FILE *work_fp;
 
 
 			printf("RELAT: %d %d\n", rel_1, rel_2);
-			// RadixHashJoin(&rel_R, &rel_S);
+			RadixHashJoin(&rel_R, &rel_S);
 			printf("________________________________________\n");
 			// for(j=0; j<rel_R.num_tuples; j++){
 			//  	printf("%d ", rel_R.tuples[j].payload);
 			// }
-			// break;
+
+
+			////////////////////	xekinane oi malakies
+
+			// print_result(&result_lists[pred.tuple_1.rel]);
+			// printf("+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++\n");
+			// print_result(&result_lists[pred.tuple_2.rel]);
+
+			printf("List 1 size: %d, List 2 size: %d \n", result_lists[pred.tuple_1.rel].list_size, result_lists[pred.tuple_2.rel].list_size);
+
+			break;
 
 		}
 		else{/*Only one relation in the predicate*/
@@ -545,6 +555,7 @@ FILE *work_fp;
 		 // predicate with key prior[i]
 
 	}
+
 
 
 

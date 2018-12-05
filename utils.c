@@ -69,41 +69,6 @@ void insert_pred(struct query_info* query, char* pred, int index){
 	}
 }
 
-void insert_inter(int row, result* result){
-	int i;
-	int * ptr;
-	struct node *current_node;
-	current_node = result->start_list;
 
-	//Go to the current bucket 
-	for (i = 1; i < result->list_size; i++){
-		if(current_node -> next != NULL){
-			current_node = current_node -> next;
-		}
-	}
-
-	// Allocate new bucket if necessary
-	if(current_node -> buffer_end - current_node->buffer < sizeof(int)){
-		// printf("New bucket\n");
-
-		current_node -> next = (struct node*)malloc(sizeof(struct node));
-		current_node -> next -> buffer_start = (void*)malloc(BUFFER);
-		
-		current_node = current_node -> next;
-
-		current_node -> buffer = current_node -> buffer_start;		
-		current_node -> buffer_end = current_node -> buffer_start + BUFFER; 	
-		current_node -> next = NULL;
-
-		result->list_size++;
-
-	}
-
-	ptr = current_node -> buffer;
-
-	*ptr = row;
-	current_node -> buffer = current_node -> buffer + sizeof(int);
-
-}
 
 

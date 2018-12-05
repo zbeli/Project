@@ -371,6 +371,8 @@ int main(void){
 	int columns_to_print_count=1;	// plithos provolwn
 	int pred_count=1; // plithos predicates
 
+	result* res_comp = (result*)malloc(sizeof(result));
+
 	while ((read = getline(&query, &len, work_fp)) !=-1 ){
 		if(strcmp(query,"F\n")==0){		// stamataei otan diavasei F
 			break;
@@ -452,14 +454,18 @@ int main(void){
 		print_query_info(&temp_q);
 		printf("\n");
 
+		comparison_query(info,0,2,8600,'>',res_comp);
+		print_result(res_comp);
+		free_result(res_comp);
+
 		field=0;
 		relations_count=1;
 		columns_to_print_count=1;
 		pred_count=1;
 
-	// break;	//gia debbug mono gia to prwto predicate
+	break;	//gia debbug mono gia to prwto predicate
 	}
-
+	free_result(res_comp);
 	fclose(work_fp);
 
 

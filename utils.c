@@ -1,6 +1,6 @@
 #include "utils.h"
 
-#include "string.h"
+#include <string.h>
 
 
 void create_col_array(struct file_info *info, uint64_t * data){
@@ -61,12 +61,46 @@ void insert_pred(struct query_info* query, char* pred, int index){
 	tok = strtok_r(pred, ".",&pred);
 
 	if(tok==NULL){
+		query->preds[index].flag = 0;
 		query->preds[index].value = atoi(token);
 	}
 	else{
 		query->preds[index].tuple_2.rel = atoi(token);
 		query->preds[index].tuple_2.col = atoi(tok);
 
-		query->preds[index].value = -1;
+		query->preds[index].flag = -1;
 	}
+}
+
+result* comparison_query(struct file_info *info, uint64_t rel, uint64_t col, int value, char comp_op, result *results){
+printf("lalalalalalal\n");
+	result_init(results);
+printf("lolololololo\n");
+	int count=0;
+	for(int i=1 ; i<=info[rel].num_tup ; i++){
+		if(comp_op=='='){
+			if(info[rel].col_array[col][i] == value){
+				//printf(" -> %d) %lu \n", i, info[rel].col_array[col][i]);
+				count++;
+				insert_result(-1, info[rel].col_array[col][i], results);			
+			}
+
+		}
+		else if(comp_op=='>'){
+			if(info[rel].col_array[col][i] > value){
+				//printf(" -> %d) %lu \n", i, info[rel].col_array[col][i]);
+				count++;
+				insert_result(-1, info[rel].col_array[col][i], results);	
+			}
+		}
+		else if(comp_op=='<'){
+			if(info[rel].col_array[col][i] < value){
+				//printf(" -> %d) %lu \n", i, info[rel].col_array[col][i]);
+				count++;
+				insert_result(-1, info[rel].col_array[col][i], results);				
+			}
+		}
+
+	}
+	printf("COUNT:%d  NUM_TUP:%lu\n",count,info[rel].num_tup);
 }

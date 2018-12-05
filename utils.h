@@ -5,6 +5,8 @@
 #include <stdlib.h>
 #include <stdint.h>
 
+#include "result.h"
+
 /*information about relations*/
 struct file_info {
 	uint64_t num_tup;   //number of tuples
@@ -25,7 +27,8 @@ struct predicate {
 	struct rel_col_tuple tuple_2;   // tuple2
 
 	char op;		//operator
-	int value;		// -1 se periptvsh pou kai to 2o meros einai tel_col_tuple
+	int flag;		// -1 if there is a second rel_col_tuple
+	int value;		//  if there is no a second rel_col_tuple holds the int value
 };
 
 /*query information*/
@@ -42,5 +45,7 @@ struct query_info {
 void create_col_array(struct file_info* info, uint64_t * data);
 void print_query_info(struct query_info* query);
 void insert_pred(struct query_info* query, char* pred, int index);
+
+result* comparison_query(struct file_info *info, uint64_t rel, uint64_t col, int value, char comp_op, result *results);
 #endif /*utils.h*/
 

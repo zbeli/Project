@@ -168,6 +168,7 @@ result* RadixHashJoin(relation *relR, relation* relS){
 	
 	printf("<------------------->\n");
 
+
 	int num_h2 = (int)pow(2,h2);
 
 	struct relation temp_small_bucket;
@@ -205,6 +206,7 @@ result* RadixHashJoin(relation *relR, relation* relS){
 	//////////////////////////////////
 
 		//printf("<------------------------------------------------------------------------------------>\n");
+
 
 		// arxikopihsh temp_bucket
 		for(int j=0 ; j<num_h2 ; j++){

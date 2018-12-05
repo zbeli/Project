@@ -8,6 +8,7 @@
 
 #include "result.h"
 
+
 // #define h1 12
 // #define h2 8
 
@@ -16,6 +17,7 @@
 
 /*MAX number of relations in a predicate is 4!?*/
 result result_lists[4];
+
 
 typedef struct relation relation;
 /*Type definition for tuple*/
@@ -30,6 +32,7 @@ it consists of an array of tuples and a size of the relation*/
 struct relation{
 	struct tuple *tuples;
 	uint32_t num_tuples;
+
 
 	int rel_id; //////////////////////???
 };

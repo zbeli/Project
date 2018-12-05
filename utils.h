@@ -4,6 +4,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdint.h>
+
 #include <string.h>
 
 #include "result.h"
@@ -16,11 +17,6 @@ struct file_info {
 	uint64_t **col_array; //array of pointers to the columns of the relation
 
 };
-
-
-// struct interim{
-// 	struct result list[4]; //MAXIMUM 4 relations in the predicate!?
-// };
 
 struct priority{
 	uint64_t value;
@@ -38,7 +34,10 @@ struct predicate {
 	struct rel_col_tuple tuple_2;   // tuple2
 
 	char op;		//operator
-	int value;		// -1 se periptvsh pou kai to 2o meros einai tel_col_tuple
+
+	int flag;		// -1 if there is a second rel_col_tuple
+	uint64_t value;		//  if there is no a second rel_col_tuple holds the int value
+
 };
 
 /*query information*/
@@ -48,12 +47,10 @@ struct query_info {
 	int cols_count;
 
 	uint64_t* rels;   						//relations involved in query
+
 	struct predicate* preds;   				//predicates
 	struct rel_col_tuple* cols_to_print;	//columns to print
 };
-
-
-
 
 
 void create_col_array(struct file_info* info, uint64_t * data);
@@ -61,5 +58,8 @@ void print_query_info(struct query_info* query);
 void insert_pred(struct query_info* query, char* pred, int index);
 
 
+result* comparison_query(struct file_info *info, uint64_t rel, uint64_t col, int value, char comp_op, result *results);
+
+void insert_inter(int row, result* result);
 #endif /*utils.h*/
 

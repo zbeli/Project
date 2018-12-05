@@ -1,5 +1,6 @@
 #include "utils.h"
 
+#include <string.h>
 
 void create_col_array(struct file_info *info, uint64_t * data){
 
@@ -17,22 +18,22 @@ void create_col_array(struct file_info *info, uint64_t * data){
 void print_query_info(struct query_info* query){
 	printf("Sxeseis %d\n", query->rel_count);
 	for(int i=0 ; i<query->rel_count ; i++){
-		printf("rel:%llu\n",query->rels[i]);
+		printf("rel:%lu\n",query->rels[i]);
 	}
 	printf("--------------------\n");
 	printf("Predicates %d\n", query->pred_count);
 	for(int i=0 ; i<query->pred_count ; i++){
 		if(query->preds[i].value==-1){
-			printf("rel1:%llu col1:%llu - operator:%c - rel2:%llu col2:%llu\n",query->preds[i].tuple_1.rel, query->preds[i].tuple_1.col, query->preds[i].op , query->preds[i].tuple_2.rel, query->preds[i].tuple_2.col);
+			printf("rel1:%lu col1:%lu - operator:%c - rel2:%lu col2:%lu\n",query->preds[i].tuple_1.rel, query->preds[i].tuple_1.col, query->preds[i].op , query->preds[i].tuple_2.rel, query->preds[i].tuple_2.col);
 		}
 		else{
-			printf("rel1:%llu col1:%llu - operator:%c - value:%d\n",query->preds[i].tuple_1.rel, query->preds[i].tuple_1.col, query->preds[i].op , query->preds[i].value);
+			printf("rel1:%lu col1:%lu - operator:%c - value:%d\n",query->preds[i].tuple_1.rel, query->preds[i].tuple_1.col, query->preds[i].op , query->preds[i].value);
 		}
 	}
 	printf("--------------------\n");
 	printf("Provoles %d\n", query->cols_count);
 	for(int i=0 ; i<query->cols_count ; i++){
-		printf("rel:%llu col:%llu\n", query->cols_to_print[i].rel, query->cols_to_print[i].col);
+		printf("rel:%lu col:%lu\n", query->cols_to_print[i].rel, query->cols_to_print[i].col);
 	}
 }
 
@@ -59,16 +60,76 @@ void insert_pred(struct query_info* query, char* pred, int index){
 	tok = strtok_r(pred, ".",&pred);
 
 	if(tok==NULL){
+		query->preds[index].flag = 0;
 		query->preds[index].value = atoi(token);
 	}
 	else{
 		query->preds[index].tuple_2.rel = atoi(token);
 		query->preds[index].tuple_2.col = atoi(tok);
 
-		query->preds[index].value = -1;
+		query->preds[index].flag = -1;
 	}
 }
 
 
+result* comparison_query(struct file_info *info, uint64_t rel, uint64_t col, int value, char comp_op, result *results){
+printf("lalalalalalal\n");
+	result_init(results);
+printf("lolololololo\n");
+	int count=0;
+	for(int i=1 ; i<=info[rel].num_tup ; i++){
+		if(comp_op=='='){
+			if(info[rel].col_array[col][i] == value){
+				//printf(" -> %d) %lu \n", i, info[rel].col_array[col][i]);
+				count++;
+				insert_result(-1, info[rel].col_array[col][i], results);			
+			}
 
+		}
+		else if(comp_op=='>'){
+			if(info[rel].col_array[col][i] > value){
+				//printf(" -> %d) %lu \n", i, info[rel].col_array[col][i]);
+				count++;
+				insert_result(-1, info[rel].col_array[col][i], results);	
+			}
+		}
+		else if(comp_op=='<'){
+			if(info[rel].col_array[col][i] < value){
+				//printf(" -> %d) %lu \n", i, info[rel].col_array[col][i]);
+				count++;
+				insert_result(-1, info[rel].col_array[col][i], results);				
+			}
+		}
+
+	}
+	printf("COUNT:%d  NUM_TUP:%lu\n",count,info[rel].num_tup);
+}
+
+
+void insert_inter(int row, result* result){
+	int i;
+	int * ptr;
+	struct node *current_node;
+	current_node = result->start_list;
+
+	//Go to the current bucket 
+	for (i = 1; i < result->list_size; i++){
+		if(current_node -> next != NULL){
+			current_node = current_node -> next;
+		}
+	}
+
+	// Allocate new bucket if necessary
+	if(current_node -> buffer_end - current_node->buffer < sizeof(int)){
+		// printf("New bucket\n");
+
+		current_node -> next = (struct node*)malloc(sizeof(struct node));
+		current_node -> next -> buffer_start = (void*)malloc(BUFFER);
+		
+		current_node = current_node -> next;
+
+		current_node -> buffer = current_node -> buffer_start;		
+		current_node -> buffer_end = current_node -> buffer_start + BUFFER; 	
+		current_node -> next = NULL;
+}
 

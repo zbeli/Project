@@ -18,7 +18,7 @@
 #define PATH "/home/zisis/Desktop/submission/submission/workloads/small/"
 
 void calculate_priority(struct priority *priority, struct query_info *query, struct file_info *info);
-void create_relation(struct relation* rel, struct file_info *info, int rel_id, uint64_t column);
+void create_relation(struct relation* rel, struct file_info *info, int rel_id, int rel_key, uint64_t column);
 
 
 int main(void){
@@ -515,8 +515,8 @@ FILE *work_fp;
 			rel_2 = temp_q.rels[pred.tuple_2.rel];
 			col_2 = pred.tuple_2.col;
 
-			create_relation(&rel_R, info, rel_1, col_1);
-			create_relation(&rel_S, info, rel_2, col_2);
+			create_relation(&rel_R, info, rel_1, pred.tuple_1.rel, col_1);
+			create_relation(&rel_S, info, rel_2, pred.tuple_2.rel, col_2);
             
    //          printf("================================\n");
 			// printf("REL: %d COL: %llu rows: %d \n", rel_1, col_1, relR.num_tuples);
@@ -534,7 +534,7 @@ FILE *work_fp;
 
 		}
 		else{/*Only one relation in the predicate*/
-			create_relation(&rel_R, info, rel_1, col_1);
+			create_relation(&rel_R, info, rel_1, pred.tuple_1.rel, col_1);
 			printf("RELAT: %d %d\n", rel_1, rel_2);	
 		}
 
@@ -577,7 +577,7 @@ FILE *work_fp;
 
 /////////////////////////////////////////////////
 ///////////////////////////////////////////////////
-void create_relation(struct relation* rel, struct file_info *info, int rel_id, uint64_t column){
+void create_relation(struct relation* rel, struct file_info *info, int rel_id, int rel_key, uint64_t column){
 	 
 	printf("____________________________CREATE\n");
 	int i,j;
@@ -596,6 +596,7 @@ void create_relation(struct relation* rel, struct file_info *info, int rel_id, u
     	rel -> tuples[i].key = i+1;
     	// printf("%llu ", *(col_ptr+i));
     	rel -> tuples[i].payload = *(col_ptr+i);
+    	rel -> rel_id = rel_key;
     	// printf("%llu ", rel->tuples[i].payload);
     }
 

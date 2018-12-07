@@ -72,16 +72,16 @@ void insert_pred(struct query_info* query, char* pred, int index){
 }
 
 result* comparison_query(struct file_info *info, uint64_t rel, uint64_t col, int value, char comp_op, result *results){
-printf("lalalalalalal\n");
 	result_init(results);
-printf("lolololololo\n");
+
 	int count=0;
 	for(int i=1 ; i<=info[rel].num_tup ; i++){
 		if(comp_op=='='){
 			if(info[rel].col_array[col][i] == value){
 				//printf(" -> %d) %lu \n", i, info[rel].col_array[col][i]);
 				count++;
-				insert_result(-1, info[rel].col_array[col][i], results);			
+				//insert_result(-1, info[rel].col_array[col][i], results);
+				insert_inter(i, results);			
 			}
 
 		}
@@ -89,14 +89,16 @@ printf("lolololololo\n");
 			if(info[rel].col_array[col][i] > value){
 				//printf(" -> %d) %lu \n", i, info[rel].col_array[col][i]);
 				count++;
-				insert_result(-1, info[rel].col_array[col][i], results);	
+				//insert_result(-1, info[rel].col_array[col][i], results);
+				insert_inter(i, results);		
 			}
 		}
 		else if(comp_op=='<'){
 			if(info[rel].col_array[col][i] < value){
 				//printf(" -> %d) %lu \n", i, info[rel].col_array[col][i]);
 				count++;
-				insert_result(-1, info[rel].col_array[col][i], results);				
+				//insert_result(-1, info[rel].col_array[col][i], results);
+				insert_inter(i, results);					
 			}
 		}
 
@@ -142,3 +144,34 @@ void insert_inter(int row, result* result){
 
 }
 
+void print_sums(result *res, struct query_info *query){
+	struct node *current_node;
+	void * temp;
+
+	int index;
+	uint64_t sum;
+	for(int i = 0; i < query->cols_count ; i++){
+		for(index=0 ; index<query->cols_count ; index++){
+			if(query->cols_to_print[i].rel == query->rels[index]){
+				break;		// index keep the position of current relation in res
+			}
+		}
+
+		sum = 0;
+		current_node = res[index].start_list;
+		temp = current_node->buffer_start;
+
+		for(int j=0 ; j<res[index].list_size ; j++){
+			while(temp < current_node->buffer){
+				sum += *(int*)temp;
+				temp = temp + sizeof(int);
+			}
+			if(current_node->next != NULL){
+				current_node = current_node->next;
+				temp = current_node->buffer_start;
+			}
+		}
+
+		printf("rel:%llu col:%llu %llu\n", query->cols_to_print[i].rel, query->cols_to_print[i].col, sum);
+	}
+}

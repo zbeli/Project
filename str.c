@@ -73,8 +73,6 @@ void reorder(relation * ord_rel, relation *rel, histogram* hist, histogram* psum
 	int tuples = rel->num_tuples;
 	ord_rel -> num_tuples = tuples;
 
-	ord_rel -> rel_id = rel -> rel_id;    ///////////////////////////////////////////////////
-
 	int hist_rows = (int)pow(2,h1);
 
 	ord_rel -> tuples = (struct tuple*)malloc(tuples*sizeof(struct tuple));
@@ -287,14 +285,12 @@ result* RadixHashJoin(relation *relR, relation* relS){
 				temp_k = & ( temp_bucket.key[h_val] ) ;
 				while( (*temp_k) != -1){
 					if( temp_small_bucket.tuples[*temp_k].payload == orderedR.tuples[r].payload ){
-		//				printf("%d) R(%d %c)-S(%d %c) \n", h_val, orderedR.tuples[r].key , orderedR.tuples[r].payload , temp_small_bucket.tuples[(*temp_k)].key, temp_small_bucket.tuples[(*temp_k)].payload);
+						// printf("%d) R(%d %c)-S(%d %c) \n", h_val, orderedR.tuples[r].key , orderedR.tuples[r].payload , temp_small_bucket.tuples[(*temp_k)].key, temp_small_bucket.tuples[(*temp_k)].payload);
 					
-						// insert_result( orderedR.tuples[r].key, temp_small_bucket.tuples[(*temp_k)].key , &results);
+						insert_result( orderedR.tuples[r].key, temp_small_bucket.tuples[(*temp_k)].key , &results);
 						
-						insert_inter(orderedR.tuples[r].key, &result_lists[orderedR.rel_id]);	                ////////////////////////////
-						insert_inter(temp_small_bucket.tuples[(*temp_k)].key , &result_lists[orderedS.rel_id]);	////////////////////////////
-
-
+						// insert_inter(orderedR.tuples[r].key, &result_lists[orderedR.rel_id]);	                ////////////////////////////
+						// insert_inter(temp_small_bucket.tuples[(*temp_k)].key , &result_lists[orderedS.rel_id]);	////////////////////////////
 						counter++;
 					}
 					temp_k = &( temp_chain.key[(*temp_k)] );
@@ -387,8 +383,8 @@ result* RadixHashJoin(relation *relR, relation* relS){
 
 						insert_result( temp_small_bucket.tuples[(*temp_k)].key, orderedS.tuples[r].key, &results);
 
-						insert_inter(temp_small_bucket.tuples[(*temp_k)].key, &result_lists[orderedR.rel_id]);	  ////////////////////////////
-						insert_inter(orderedS.tuples[r].key, &result_lists[orderedS.rel_id]);	                  ////////////////////////////
+						// insert_inter(temp_small_bucket.tuples[(*temp_k)].key, &result_lists[orderedR.rel_id]);	  ////////////////////////////
+						// insert_inter(orderedS.tuples[r].key, &result_lists[orderedS.rel_id]);	                  ////////////////////////////
 
 						counter++;
 					}

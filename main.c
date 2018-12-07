@@ -25,18 +25,34 @@
 
 
 
-// #define PATH "/home/zisis/Desktop/submission/submission/workloads/small/"
-#define PATH "/home/panos/Desktop/an_logismikou/submission/workloads/small/"
+#define PATH "/home/zisis/Desktop/submission/submission/workloads/small/"
+// #define PATH "/home/panos/Desktop/an_logismikou/submission/workloads/small/"
 
 
 void calculate_priority(struct priority *priority, struct query_info *query, struct file_info *info);
-void create_relation(struct relation* rel, struct file_info *info, int rel_id, int rel_key, uint64_t column);
+void create_relation(struct relation* rel, struct file_info *info, int rel_id, uint64_t column);
+void create_interlist(struct result *result, struct result* list1, struct result* list2);
+void create_rel_from_list(struct relation* rel, struct result* result, struct file_info *info, int rel_id, uint64_t column);
+void filter(struct relation *rel,struct result * result, struct file_info *info, int rel_id, uint64_t column, uint64_t value, char op);
+void calculate_sum(struct result* result, struct query_info *query, struct file_info *info);
 
 
 int main(void){
 
     int i,j;
-/*    result* res;
+    result* res;
+
+
+	//test_case_1
+	//Table R
+	int r_size = 10;
+	char R[10] = {'a','a','a','a','d','d','c','b','a','a'};
+	int s_size = 72;
+	char S[72] = {'0','1','2','3','4','5','6','7','8','9','A','B','C','D','E','F','G','H','I','J','K','L','M','N','O','P','Q','R','S','T','U','V','W','X','Y','Z',
+		'0','1','2','3','4','5','6','7','8','9','a','b','c','d','e','f','g','h','i','j','k','l','m','n','o','p','q','r','e','t','u','v','w','x','y','z'};
+	// for(int i=0 ; i<72 ; i++){
+	// 	printf("%c ",S[i]);
+	// }
 
     struct relation relR;
     relR.num_tuples = r_size;
@@ -55,11 +71,11 @@ int main(void){
     }
 
 
-    //res = RadixHashJoin(&relR, &relS);
-    //print_result(res);
+    // res = RadixHashJoin(&relR, &relS);
+    // print_result(res);
 
-    free(relR.tuples);
-    free(relS.tuples);*/
+    // free(relR.tuples);
+    // free(relS.tuples);
 
     // free_result(res);
 
@@ -186,7 +202,7 @@ int main(void){
 	/////////////////////////////////////////////////////////
 	/////////////////////////////////////////////////////////
 	/////////////////////////////////////////////////////////
-FILE *work_fp;
+    FILE *work_fp;
 	char file_path[100];
 	
 	strcpy(file_path, PATH);
@@ -295,27 +311,31 @@ FILE *work_fp;
 			// printf("(%d)%s ",i,temp_col);
 		}
 
-		print_query_info(&temp_q);
+		// print_query_info(&temp_q);
 		printf("\n");
 
-		comparison_query(info,0,2,8600,'>',res_comp);
-		print_result(res_comp);
-		free_result(res_comp);
+		// comparison_query(info,0,2,8600,'>',res_comp);
+		// print_result(res_comp);
+		// free_result(res_comp);
 
 		field=0;
 		relations_count=1;
 		columns_to_print_count=1;
 		pred_count=1;
 
-	// break;	//gia debbug mono gia to prwto predicate
+	    //break;	//gia debbug mono gia to prwto predicate
 	}
 
 	fclose(work_fp);
 
-	/////////////////////////////////////////////////////////
-	/////////////////////////////////////////////////////////
-	/////////////////////////////////////////////////////////
-	/////////////////////////////////////////////////////////
+	////////////////////////////////////////////////////////////////////////////////////////////////////////
+	///////////////////////////</////////////////////////////////////////////////////////////////////////////
+	////////////////////////////////////////////////////////////////////////////////////////////////////////
+	///////////////////////////////////////////////////////////////////////////////////////////////////////
+	////////////////////////////////////////////////////////////////////////////////////////////////////////
+	////////////////////////////////////////////////////////////////////////////////////////////////////////
+	////////////////////////////////////////////////////////////////////////////////////////////////////////
+	///////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	printf("==============================================================================\n");
 	int num_rel = temp_q.rel_count; //number of predicates in the query
@@ -328,19 +348,15 @@ FILE *work_fp;
 
 	struct priority prior[num_pred]; //priority ekteleshs predicate
 	struct result list[num_rel]; //endiamesh domh gia relations tou predicate
-	
 
 
 	/*arxikopoihsh twn endiameswn domwn*/
 	///!!!!!
 	for(i = 0; i < num_rel; i++){
-		result_init(&(result_lists[i]));
+		result_lists[i].start_list = NULL;
+		// result_init(&(result_lists[i]));
 	}
 
-
-
-
-	
 
 	// for(i = 0; i < num_pred; i++){
 	// 	printf("%d - %llu\n", prior[i].key, prior[i].value);
@@ -349,76 +365,133 @@ FILE *work_fp;
 	struct relation rel_R;
 	struct relation rel_S;
 
+	/*For every predicate*/
 	for(i = 0; i < num_pred; i++){
+		printf("\t\t\t...Predicate: %d/%d...\n",i+1, num_pred);
 
 		//update relations!!!!!!!!!
+
 		// calculate_priority(prior, &temp_q, info);
 		
 		pred = temp_q.preds[i];
 		rel_1 = temp_q.rels[pred.tuple_1.rel];
 		col_1 = pred.tuple_1.col;
+
+		/*check if list of relation 1 exists*/
+		if(result_lists[pred.tuple_1.rel].start_list == NULL){
+			result_init(&(result_lists[pred.tuple_1.rel]));
+			create_relation(&rel_R, info, rel_1, col_1);	
+
+		}else{
+			/*Create relation from list*/
+			create_rel_from_list(&rel_R, &(result_lists[pred.tuple_1.rel]), info, rel_1, col_1);
+
+			// !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+			/*free the list - (reconstruction after RHJ)*/
+			free_result(&(result_lists[pred.tuple_1.rel]));
+			result_lists[pred.tuple_1.rel].start_list = NULL;
+			
+			result_init(&(result_lists[pred.tuple_1.rel]));
+
+
+			// printf("%d", result_lists[pred.tuple_1.rel].list_size);			
+		}
+
 		/*Two relations in the current predicate*/
 		if(pred.flag == -1){
 			rel_2 = temp_q.rels[pred.tuple_2.rel];
 			col_2 = pred.tuple_2.col;
 
-			create_relation(&rel_R, info, rel_1, pred.tuple_1.rel, col_1);
-			create_relation(&rel_S, info, rel_2, pred.tuple_2.rel, col_2);
-            
-   //          printf("================================\n");
+		    /*check if list of relation 2 exists*/
+			if(result_lists[pred.tuple_2.rel].start_list == NULL){
+				result_init(&(result_lists[pred.tuple_2.rel]));
+    	    	create_relation(&rel_S, info, rel_2, col_2);
+			}else{
+				/*Create relation from list*/
+                create_rel_from_list(&rel_S, &(result_lists[pred.tuple_2.rel]), info, rel_2, col_2);
+				// create_relation(&(result_lists[pred.tuple_2.rel]), info, rel_2, pred.tuple_2.rel, col_2);
+							// !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+				/*free the list - (reconstruction after RHJ)*/
+				free_result(&(result_lists[pred.tuple_2.rel]));
+				result_lists[pred.tuple_2.rel].start_list = NULL;
+				// ????????????????????????????????????????????
+				// result_lists[pred.tuple_2.rel].list_size = 0;
+				// result_lists[pred.tuple_2.rel].counter = 0;
+				result_init(&(result_lists[pred.tuple_2.rel]));
+			}
+            // printf("================================\n");
 			// printf("REL: %d COL: %llu rows: %d \n", rel_1, col_1, relR.num_tuples);
-   //          printf("    -->%d\n", relR.tuples[0].payload);
-   //          printf("================================\n");
+            // printf("    -->%d\n", relR.tuples[0].payload);
+            // printf("================================\n");
 
 
-			printf("RELAT: %d %d\n", rel_1, rel_2);
-			RadixHashJoin(&rel_R, &rel_S);
+			printf("RELATIONS: %d %d\n", rel_1, rel_2);
+
+			// res = RadixHashJoin(&relR, &relS);	//testing		
+			res = RadixHashJoin(&rel_R, &rel_S);
+			// print_result(res);
+			// return -1;
+
+			printf("\t\t\t %d %d\n", result_lists[pred.tuple_1.rel].counter, result_lists[pred.tuple_2.rel].counter);
+
+			create_interlist(res, &result_lists[pred.tuple_1.rel], &result_lists[pred.tuple_2.rel]);
+
+			printf("\t\t\t\tSEGMENTATION\n");
+			//TSEKARE AN YPARXOUN OI LISTES!!!!!!
+
+
+	/*		print_result(&result_lists[pred.tuple_1.rel]);
+			printf("=========================================================================\n");
+			printf("=========================================================================\n");
+			printf("=========================================================================\n");
+
+			print_result(&result_lists[pred.tuple_2.rel]);*/
+
+
+			printf("========> Elements: %d\n", res->counter);
+			printf("========> Elements Rel 1: %d\n", result_lists[pred.tuple_1.rel].counter);
+			printf("========> Elements Rel 2: %d\n", result_lists[pred.tuple_2.rel].counter);
+
+			// break; //debug
+
 			printf("________________________________________\n");
 			// for(j=0; j<rel_R.num_tuples; j++){
 			//  	printf("%d ", rel_R.tuples[j].payload);
 			// }
 
 
-			////////////////////	xekinane oi malakies
-
 			// print_result(&result_lists[pred.tuple_1.rel]);
 			// printf("+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++\n");
 			// print_result(&result_lists[pred.tuple_2.rel]);
+            
+            // free(res);
+			// break;
+            
 
-			printf("List 1 size: %d, List 2 size: %d \n", result_lists[pred.tuple_1.rel].list_size, result_lists[pred.tuple_2.rel].list_size);
 
-			break;
-
+            // break;
 		}
-		else{/*Only one relation in the predicate*/
-			create_relation(&rel_R, info, rel_1, pred.tuple_1.rel, col_1);
-			printf("RELAT: %d %d\n", rel_1, rel_2);	
+		else{/*Filter type of predicate*/
+            
+            printf("SOUROTIRIIIII => rel: %d value: %llu\n", rel_1, temp_q.preds[i].value);	
+
+			filter(&rel_R,&result_lists[pred.tuple_1.rel], info ,rel_1, col_1, temp_q.preds[i].value, temp_q.preds[i].op);
+		    
+		    printf("List_size: %d\n", result_lists[pred.tuple_1.rel].counter);	
 		}
 
 
 		// printf("-->%llu , %llu\n", temp_q.preds[i].tuple_1.rel, temp_q.preds[i].tuple_1.col);
 
 		// printf("#########: %llu \n", temp_q.rels[i]);
-		 // predicate with key prior[i]
+		// predicate with key prior[i]
 
 	}
 
-
-
-
-
-
-
-
-
-
-
-
-
+    calculate_sum(&result_lists[2], &temp_q, info);
 
 
 	printf("ALL OK UNTIL HERE!!!\n");
-
 
 	/*Free*/
 	free(data);
@@ -434,14 +507,187 @@ FILE *work_fp;
     printf("End of Program.\n");
 	return 0;
 }
+////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////
+// struct file_info *info, int rel_id, uint64_t column)
+
+void calculate_sum(struct result* result, struct query_info *query, struct file_info *info){
+    int i;
+    uint64_t sum = 0;
+    uint64_t *col_ptr; /*pointer to the column of the relation*/
+
+
+    struct node *current_node;
+	current_node = result -> start_list;
+	int * temp = current_node -> buffer_start;
+
+    col_ptr = info[10].col_array[0];
+
+    for(i = 0; i < result -> counter; i++){
+
+   		while((void*)temp < current_node->buffer){
+            sum = sum + *col_ptr + *(temp-1);   //////!!!!!			
+			temp = temp + 1;
+		}
+
+		if(current_node -> next != NULL){
+			current_node = current_node->next;
+			temp = current_node->buffer_start;
+		}   
+    }
+
+    printf("\t\t\t-------------> SUM: %llu\n", sum);
+
+}
+
+////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////
+void filter(struct relation *rel,struct result * result, struct file_info *info, int rel_id, uint64_t column, uint64_t value, char op){
+    printf("\t\t\t--------  WELCOME TO SOUROTIRIIIII------ \n");
+    int i = 0;
+   	uint64_t *col_ptr; /*pointer to the column of the relation*/
+
+    rel -> num_tuples = info[rel_id].num_tup;
+    col_ptr = info[rel_id].col_array[column];
+
+    if(op == '>'){
+    	printf("Correct operator!\n");
+	    for(i = 0; i < rel -> num_tuples; i++){
+	        if(rel -> tuples[i].payload > value){
+                insert_inter(rel->tuples[i].key, result);
+	        }
+	    }
+    }
+}
+////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////
+
+void item_exists(struct result * result, int value){
+	// printf("\t\t ITEM_EXISTS\n");
+	int i;
+	// int *ptr;
+	int flag_exists = 0;
+	struct node *current_node;
+	current_node = result->start_list;
+
+	int* temp = current_node->buffer_start;
+
+	for(i = 0; i < result -> list_size; i++){
+
+		while((void*)temp < current_node->buffer){
+			
+			// printf("%d ", *(int*)temp);
+			// printf("11111111111111111111111111111111111\n");
+			if((*temp) != value){
+				temp = temp + 1;
+				// printf("\t\t###################################\n");
+			}
+			else{
+				flag_exists = 1;
+				// printf("\t\t$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$\n");
+				// break;
+				return;
+			}
+		}
+		/*go to next node of the list*/
+		if(current_node -> next != NULL){
+			current_node = current_node->next;
+			temp = current_node -> buffer_start;
+		}
+	}
+
+	/*If the element doesn't exist insert it in the list */
+	if(flag_exists == 0){
+		insert_inter(value, result);
+	}
+}
+
+////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////
+
+void create_interlist(struct result *result, struct result* list1, struct result* list2){
+	// printf("\t\t ----------------CREATE INTERLIST------------------\n");
+	int i;
+	// int *ptr;
+	struct node *current_node;
+	current_node = result -> start_list;
+	int value_1, value_2;
+	int* temp = current_node->buffer_start;
+
+	for(i = 0; i < result -> list_size; i++){
+
+		while((void*)temp < current_node -> buffer ){
+			// printf("+++++++++++++++++++++++++++++++++++++");
+			
+			value_1 = *(int*)temp;
+			value_2 = *(int*)(temp+1);
+			temp = temp + 2;
+			// printf("\t\t00000000000000: %d %d %d\n", value_1, value_2, *temp);
+			/*Check if the values exist in the respective lists*/
+			item_exists(list1, value_1);
+			item_exists(list2, value_2);
+
+		}
+
+		if(current_node -> next != NULL){
+			current_node = current_node -> next;
+			temp = current_node -> buffer_start;
+		}
+	}
+
+}
+
+/////////////////////////////////////////////////
+/////////////////////////////////////////////////
+void create_rel_from_list(struct relation* rel, struct result* result, struct file_info *info, int rel_id, uint64_t column){
+	int i, j;
+	uint64_t *col_ptr; /*pointer to the column of the relation*/
+
+	struct node *current_node;
+	current_node = result -> start_list;
+	int * temp = current_node->buffer_start;
+
+
+	rel -> num_tuples = result -> counter;
+    col_ptr = info[rel_id].col_array[column];
+
+    // printf("REL: %d COL: %llu rows: %d \n", rel_id, column, rel->num_tuples);
+    // printf("    -->%llu\n", *col_ptr);
+
+	rel -> tuples = (struct tuple*)malloc(rel->num_tuples*sizeof(struct tuple));
+    j = 0;
+	for(i = 0; i < result -> list_size; i++){
+    
+    	while((void*)temp < current_node->buffer){
+			// temp = temp + 1;
+
+		    rel -> tuples[j].key = *temp;   //!!!!!!!!!!!!!!!!!!!!!
+	    	printf("%llu ", *(col_ptr+j));
+	    	break;
+	    	//////////??????????????????????????????
+	    	rel -> tuples[j].payload = *(col_ptr + *(temp - 1));
+          	// rel -> tuples[j].payload = *(col_ptr + *(temp));
+
+
+            temp = temp + 1;
+	    	j++;
+		}
+
+		if(current_node->next != NULL){
+			current_node = current_node->next;
+			temp = current_node->buffer_start;
+		}
+    }
+
+}
 
 /////////////////////////////////////////////////
 ///////////////////////////////////////////////////
-void create_relation(struct relation* rel, struct file_info *info, int rel_id, int rel_key, uint64_t column){
-	 
-	printf("____________________________CREATE\n");
+void create_relation(struct relation* rel, struct file_info *info, int rel_id, uint64_t column){
+	/*Create relation from file*/
+	printf("____________________________CREATE (file)\n");
 	int i,j;
-	uint64_t *col_ptr;
+	uint64_t *col_ptr; /*pointer to the column of the relation*/
 
     rel->num_tuples = info[rel_id].num_tup;
     col_ptr = info[rel_id].col_array[column];
@@ -456,12 +702,11 @@ void create_relation(struct relation* rel, struct file_info *info, int rel_id, i
     	rel -> tuples[i].key = i+1;
     	// printf("%llu ", *(col_ptr+i));
     	rel -> tuples[i].payload = *(col_ptr+i);
-    	rel -> rel_id = rel_key;
     	// printf("%llu ", rel->tuples[i].payload);
     }
 
 	printf("__________________________________\n");
-
+	
 
 }
 

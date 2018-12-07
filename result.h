@@ -7,10 +7,7 @@
 #include <math.h>
 
 
-// #define BUFFER 1048576	/* 1024*1024 */
-
-#define BUFFER 8	/* 1024*1024 */
-
+#define BUFFER 1048576	/* 1024*1024 */
 
 struct node{
 
@@ -23,6 +20,8 @@ struct node{
 typedef struct result{
 	struct node *start_list; //pointer to the first node of the list 
 	int list_size;			 //the size of the list
+
+	int counter;             //number of elements in the list ///////
 }result;
 
 /*Initialization of the results list*/

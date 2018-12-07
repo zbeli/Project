@@ -8,6 +8,8 @@ void result_init(result* result){
 	result->start_list -> buffer = result->start_list -> buffer_start;		
 	result->start_list -> next = NULL; 
 	result->list_size = 1;
+
+	result->counter = 0;
 }
 
 
@@ -50,6 +52,8 @@ void insert_result(int rowR, int rowS ,result* result){
 	*ptr = rowS;
 	current_node -> buffer = current_node -> buffer + sizeof(int);
 
+	result -> counter = result -> counter + 2; 
+
 }
 
 /////////////////////////////////////////////////////////////////////
@@ -87,7 +91,7 @@ void insert_inter(int row, result* result){
 
 	*ptr = row;
 	current_node -> buffer = current_node -> buffer + sizeof(int);
-
+	result -> counter++;
 }
 
 void print_result(result* result){

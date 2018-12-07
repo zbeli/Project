@@ -18,22 +18,22 @@ void create_col_array(struct file_info *info, uint64_t * data){
 void print_query_info(struct query_info* query){
 	printf("Sxeseis %d\n", query->rel_count);
 	for(int i=0 ; i<query->rel_count ; i++){
-		printf("rel:%lu\n",query->rels[i]);
+		// printf("rel:%lu\n",query->rels[i]);
 	}
 	printf("--------------------\n");
 	printf("Predicates %d\n", query->pred_count);
 	for(int i=0 ; i<query->pred_count ; i++){
 		if(query->preds[i].value==-1){
-			printf("rel1:%lu col1:%lu - operator:%c - rel2:%lu col2:%lu\n",query->preds[i].tuple_1.rel, query->preds[i].tuple_1.col, query->preds[i].op , query->preds[i].tuple_2.rel, query->preds[i].tuple_2.col);
+			// printf("rel1:%lu col1:%lu - operator:%c - rel2:%lu col2:%lu\n",query->preds[i].tuple_1.rel, query->preds[i].tuple_1.col, query->preds[i].op , query->preds[i].tuple_2.rel, query->preds[i].tuple_2.col);
 		}
 		else{
-			printf("rel1:%lu col1:%lu - operator:%c - value:%d\n",query->preds[i].tuple_1.rel, query->preds[i].tuple_1.col, query->preds[i].op , query->preds[i].value);
+			// printf("rel1:%lu col1:%lu - operator:%c - value:%d\n",query->preds[i].tuple_1.rel, query->preds[i].tuple_1.col, query->preds[i].op , query->preds[i].value);
 		}
 	}
 	printf("--------------------\n");
 	printf("Provoles %d\n", query->cols_count);
 	for(int i=0 ; i<query->cols_count ; i++){
-		printf("rel:%lu col:%lu\n", query->cols_to_print[i].rel, query->cols_to_print[i].col);
+		// printf("rel:%lu col:%lu\n", query->cols_to_print[i].rel, query->cols_to_print[i].col);
 	}
 }
 
@@ -102,34 +102,5 @@ printf("lolololololo\n");
 		}
 
 	}
-	printf("COUNT:%d  NUM_TUP:%lu\n",count,info[rel].num_tup);
+	// printf("COUNT:%d  NUM_TUP:%lu\n",count,info[rel].num_tup);
 }
-
-
-void insert_inter(int row, result* result){
-	int i;
-	int * ptr;
-	struct node *current_node;
-	current_node = result->start_list;
-
-	//Go to the current bucket 
-	for (i = 1; i < result->list_size; i++){
-		if(current_node -> next != NULL){
-			current_node = current_node -> next;
-		}
-	}
-
-	// Allocate new bucket if necessary
-	if(current_node -> buffer_end - current_node->buffer < sizeof(int)){
-		// printf("New bucket\n");
-
-		current_node -> next = (struct node*)malloc(sizeof(struct node));
-		current_node -> next -> buffer_start = (void*)malloc(BUFFER);
-		
-		current_node = current_node -> next;
-
-		current_node -> buffer = current_node -> buffer_start;		
-		current_node -> buffer_end = current_node -> buffer_start + BUFFER; 	
-		current_node -> next = NULL;
-}
-

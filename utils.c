@@ -104,3 +104,35 @@ printf("lolololololo\n");
 	}
 	// printf("COUNT:%d  NUM_TUP:%lu\n",count,info[rel].num_tup);
 }
+
+void print_sums(result *res, struct query_info *query){
+	struct node *current_node;
+	void * temp;
+
+	int index;
+	uint64_t sum;
+	for(int i = 0; i < query->cols_count ; i++){
+		for(index=0 ; index<query->cols_count ; index++){
+			if(query->cols_to_print[i].rel == query->rels[index]){
+				break;		// index keep the position of current relation in res
+			}
+		}
+
+		sum = 0;
+		current_node = res[index].start_list;
+		temp = current_node->buffer_start;
+
+		for(int j=0 ; j<res[index].list_size ; j++){
+			while(temp < current_node->buffer){
+				sum += *(int*)temp;
+				temp = temp + sizeof(int);
+			}
+			if(current_node->next != NULL){
+				current_node = current_node->next;
+				temp = current_node->buffer_start;
+			}
+		}
+
+		printf("rel:%llu col:%llu %llu\n", query->cols_to_print[i].rel, query->cols_to_print[i].col, sum);
+	}
+}

@@ -61,5 +61,8 @@ void insert_pred(struct query_info* query, char* pred, int index);
 result* comparison_query(struct file_info *info, uint64_t rel, uint64_t col, int value, char comp_op, result *results);
 
 void insert_inter(int row, result* result);
+
+void print_sums(result *res, struct query_info *query);
+
 #endif /*utils.h*/
 

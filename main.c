@@ -435,7 +435,7 @@ int main(void){
 			create_interlist(res, &tmp_list1, &tmp_list2, &temp_q, info, i);
 
 
-			update_results(result_lists, &tmp_list1, &tmp_list2);
+			update_results(result_lists, &tmp_list1, pred.tuple_1.rel, &tmp_list2, pred.tuple_2.rel);
 
             free_result(&tmp_list1);
             free_result(&tmp_list2);
@@ -462,7 +462,7 @@ int main(void){
             result_init(&tmp_list1);
 			filter(&rel_R, &tmp_list1, info ,rel_1, col_1, temp_q.preds[i].value, temp_q.preds[i].op);
 
-			update_results(result_lists, &tmp_list1, NULL);
+			update_results(result_lists, &tmp_list1, temp_q.preds[i].tuple_1.rel, NULL, -1);
             tmp_list1.start_list=NULL;
             tmp_list1.list_size=0;
             tmp_list1.counter=0;			

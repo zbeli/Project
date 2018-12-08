@@ -114,11 +114,11 @@ void print_sums(result *res, struct query_info *query){
 	int index;
 	uint64_t sum;
 	for(int i = 0; i < query->cols_count ; i++){
-		for(index=0 ; index<query->cols_count ; index++){
+		/*for(index=0 ; index<query->cols_count ; index++){
 			if(query->cols_to_print[i].rel == query->rels[index]){
 				break;		// index keep the position of current relation in res
-			}
-		}
+			}//////////////////////////////////////////////////////////
+		}*/
 
 		sum = 0;
 		current_node = res[index].start_list;
@@ -126,7 +126,7 @@ void print_sums(result *res, struct query_info *query){
 
 		for(int j=0 ; j<res[index].list_size ; j++){
 			while(temp < current_node->buffer){
-				sum += *(int*)temp;
+				sum += *(int*)temp;//////////////////////////////////////////
 				temp = temp + sizeof(int);
 			}
 			if(current_node->next != NULL){
@@ -139,12 +139,60 @@ void print_sums(result *res, struct query_info *query){
 	}
 }
 
-void update_results(result *result_lists, result *tmp_list1, result *tmp_list2){
+void update_results(result *result_lists, result *tmp_list1, uint64_t index_1, result *tmp_list2, uint64_t index_2){
 	if(tmp_list2==NULL){
 		printf("Update_Results FILTER\n");
+
+		result combined_result;
+		result_init(&combined_result);
+
+		struct node *current_node = tmp_list1->start_list;
+		int* temp = current_node->buffer_start;
+
+		struct node *current_node_inner = result_lists[index_1].start_list;
+		int* temp_inner = current_node_inner->buffer_start;
+
+		for(int i=0 ; i< tmp_list1->list_size; i++){
+			while((void*)temp < current_node->buffer){
+
+
+				for(int j=0 ; j<result_lists[index_1].list_size ; j++){
+					while((void*)temp_inner < current_node_inner->buffer){
+
+
+
+///////////////////////////////////////////////////////
+
+
+
+						//////////////////////////////////////////////////
+
+
+
+
+
+						temp_inner = temp_inner + 1;
+					}
+					if(current_node_inner->next != NULL){
+						current_node_inner = current_node_inner->next;
+						temp_inner = current_node_inner->buffer_start;
+					}
+				}
+
+
+
+				temp = temp + 1;
+			}
+			if(current_node->next != NULL){
+				current_node = current_node->next;
+				temp = current_node->buffer_start;
+			}
+		}
 	}
 	else{
 		printf("Update_Results JOIN\n");
 	}
+
+
 }
 

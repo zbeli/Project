@@ -64,7 +64,7 @@ void insert_inter(int row, result* result);
 
 void print_sums(result *res, struct query_info *query);
 
-void update_results(result *result_lists, result *tmp_list1, result *tmp_list2);
+void update_results(result *result_lists, result *tmp_list1, uint64_t index_1, result *tmp_list2, uint64_t index_2);
 
 #endif /*utils.h*/
 

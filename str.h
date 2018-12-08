@@ -18,6 +18,8 @@
 /*MAX number of relations in a predicate is 4!?*/
 result result_lists[4];
 
+result sum_result ;
+
 
 typedef struct relation relation;
 /*Type definition for tuple*/

@@ -438,14 +438,14 @@ int main(void){
 		    // calculate_sum(&result_lists[1], &temp_q, info);
             // print_result(&tmp_list2);
             //print_result(&result_lists[2]);
-		    if(i == 0 ){
+		    if(i == 1 ){
 		    	break;}	//debug
             // break;   //debug
 		} /*Two relations in the current predicate*/
 
 		else{/*Filter type of predicate*/
             
-            printf("SOUROTIRIIIII => rel: %d value: %llu\n", rel_1, temp_q.preds[i].value);	
+            printf("SOUROTIRIIIII => rel: %d col: %d value: %llu\n", rel_1, col_1, temp_q.preds[i].value);	
 
             result_init(&tmp_list1);
 			// filter(&rel_R, &tmp_list1, info ,rel_1, col_1, temp_q.preds[i].value, temp_q.preds[i].op);
@@ -461,14 +461,15 @@ int main(void){
    //          tmp_list1.list_size=0;
    //          tmp_list1.counter=0;			
 		    
-		    printf("List_size: %d\n", result_lists[pred.tuple_1.rel].counter);
+		    printf("Counter: %d\n", result_lists[pred.tuple_1.rel].counter);
+		    print_result(&result_lists[0]);
 		    if(i == 0 ){
 		    	break;}	//debug
 		}
 	}	/*For every predicate*/
 
 printf("lalalalalalla\n");
-	calculate_sum(&result_lists[0], &temp_q, info, 6, 0);
+	calculate_sum(&result_lists[0], &temp_q, info, 0, 0);
 printf("lelelelelelelelele\n");
 	// printf("ALL OK UNTIL HERE!!!\n");
 

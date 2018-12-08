@@ -25,8 +25,8 @@
 
 
 
-#define PATH "/home/zisis/Desktop/submission/submission/workloads/small/"
-// #define PATH "/home/panos/Desktop/small/"
+// #define PATH "/home/zisis/Desktop/submission/submission/workloads/small/"
+#define PATH "/home/panos/Desktop/small/"
 
 void filter(struct relation *rel, struct result * result, struct file_info *info, int rel_id, uint64_t column, uint64_t value, char op);
 
@@ -390,7 +390,7 @@ int main(void){
 
 		/*check if list of relation 1 exists*/
 		if(result_lists[pred.tuple_1.rel].start_list == NULL){
-			result_init(&(result_lists[pred.tuple_1.rel]));
+			// result_init(&(result_lists[pred.tuple_1.rel]));
 			create_relation(&rel_R, info, rel_1, col_1);	
 
 		}else{
@@ -405,7 +405,7 @@ int main(void){
 
 		    /*check if list of relation 2 exists*/
 			if(result_lists[pred.tuple_2.rel].start_list == NULL){
-				result_init(&(result_lists[pred.tuple_2.rel]));
+				// result_init(&(result_lists[pred.tuple_2.rel]));
     	    	create_relation(&rel_S, info, rel_2, col_2);
 			}else{
 				/*Create relation from list*/
@@ -416,8 +416,6 @@ int main(void){
 			printf("RELATIONS: %d %d\n", rel_1, rel_2);
 
 			res = RadixHashJoin(&rel_R, &rel_S);
-
-			printf("\t\t %d %d\n", result_lists[pred.tuple_1.rel].counter, result_lists[pred.tuple_2.rel].counter);
 
 			result_init(&tmp_list1);
 			result_init(&tmp_list2);
@@ -438,8 +436,9 @@ int main(void){
             // free(res);
 
 		    // calculate_sum(&result_lists[1], &temp_q, info);
-
-		    if(i == 1 ){
+            // print_result(&tmp_list2);
+            //print_result(&result_lists[2]);
+		    if(i == 0 ){
 		    	break;}	//debug
             // break;   //debug
 		} /*Two relations in the current predicate*/
@@ -449,21 +448,29 @@ int main(void){
             printf("SOUROTIRIIIII => rel: %d value: %llu\n", rel_1, temp_q.preds[i].value);	
 
             result_init(&tmp_list1);
-			filter(&rel_R, &tmp_list1, info ,rel_1, col_1, temp_q.preds[i].value, temp_q.preds[i].op);
+			// filter(&rel_R, &tmp_list1, info ,rel_1, col_1, temp_q.preds[i].value, temp_q.preds[i].op);
+            comparison_query(info, rel_1, col_1, temp_q.preds[i].value, temp_q.preds[i].op ,&tmp_list1);
+
+            // print_result(&tmp_list1);
 
 			update_results(result_lists, &tmp_list1, temp_q.preds[i].tuple_1.rel, NULL, -1);
-            tmp_list1.start_list=NULL;
-            tmp_list1.list_size=0;
-            tmp_list1.counter=0;			
+			//print_result(&result_lists[temp_q.preds[i].tuple_1.rel]);
+
+			// free_result(&tmp_list1);
+   //          tmp_list1.start_list=NULL;
+   //          tmp_list1.list_size=0;
+   //          tmp_list1.counter=0;			
 		    
-		    printf("List_size: %d\n", result_lists[pred.tuple_1.rel].counter);	
+		    printf("List_size: %d\n", result_lists[pred.tuple_1.rel].counter);
+		    if(i == 0 ){
+		    	break;}	//debug
 		}
 	}	/*For every predicate*/
 
-
-
-
-	printf("ALL OK UNTIL HERE!!!\n");
+printf("lalalalalalla\n");
+	calculate_sum(&result_lists[0], &temp_q, info, 6, 0);
+printf("lelelelelelelelele\n");
+	// printf("ALL OK UNTIL HERE!!!\n");
 
 	/*Free*/
 	free(data);
@@ -490,9 +497,9 @@ void filter(struct relation *rel,struct result * result, struct file_info *info,
     rel -> num_tuples = info[rel_id].num_tup;
     col_ptr = info[rel_id].col_array[column];
 
-    if(op == '>'){
+    if(op == '<'){
 	    for(i = 0; i < rel -> num_tuples; i++){
-	        if(rel -> tuples[i].payload > value){
+	        if(rel -> tuples[i].payload < value){
                 insert_inter(rel->tuples[i].key, result);
 	        }
 	    }

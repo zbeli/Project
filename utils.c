@@ -1,4 +1,5 @@
 #include "utils.h"
+#include "result.h"
 
 #include <string.h>
 
@@ -135,7 +136,7 @@ void print_sums(result *res, struct query_info *query){
 			}
 		}
 
-		printf("rel:%llu col:%llu %llu\n", query->cols_to_print[i].rel, query->cols_to_print[i].col, sum);
+		printf("rel:%lu col:%lu %lu\n", query->cols_to_print[i].rel, query->cols_to_print[i].col, sum);
 	}
 }
 
@@ -143,71 +144,124 @@ void update_results(result *result_lists, result *tmp_list1, uint64_t index_1, r
 	if(tmp_list2 == NULL){
 		printf("Update_Results FILTER\n");
 
-		result combined_result;
-		result_init(&combined_result);
+		result *combined_result;
+		//result_init(combined_result);
 
-		struct node *current_node = tmp_list1->start_list;
-		int* temp = current_node->buffer_start;
+		relation relR, relS;
+		if (result_lists[index_1].start_list!=NULL){
+			list_to_rel_with_indexes(&relR, &result_lists[index_1]);
+			list_to_rel_with_indexes(&relS, tmp_list1);
 
-		struct node *current_node_inner = result_lists[index_1].start_list;
-		int* temp_inner = current_node_inner->buffer_start;
+			combined_result = RadixHashJoin(&relR, &relS);
 
-		for(int i=0 ; i< tmp_list1->list_size; i++){
-			while((void*)temp < current_node->buffer){
-
-
-				for(int j=0 ; j<result_lists[index_1].list_size ; j++){
-					while((void*)temp_inner < current_node_inner->buffer){
-
-
-
-///////////////////////////////////////////////////////
-
-
-
-						//////////////////////////////////////////////////
-
-
-
-
-
-						temp_inner = temp_inner + 1;
-					}
-					if(current_node_inner->next != NULL){
-						current_node_inner = current_node_inner->next;
-						temp_inner = current_node_inner->buffer_start;
-					}
-				}
-
-
-
-				temp = temp + 1;
-			}
-			if(current_node->next != NULL){
-				current_node = current_node->next;
-				temp = current_node->buffer_start;
-			}
+			update_interlists(result_lists, combined_result, tmp_list1, index_1, NULL, -1);
+		}
+		else{
+			result_init(&result_lists[index_1]);
+			copy_result(&result_lists[index_1], tmp_list1);
+			return;
 		}
 	}
 	else if((tmp_list2 != NULL)){
-
-		///find the correct index1
-		struct node *cur_node = result_lists[index_1].start_list;
-		int* tmp = cur_node -> buffer_start;
-
-		struct node *cur_node_inner = tmp_list1 -> start_list;
-		// int* temp_inner = current_node_inner->buffer_start;
-
-	    for(int i = 0 ; i < result_lists[index_1].list_size; i++){
-
-	    }
-
-
-
 		printf("Update_Results JOIN\n");
+
+
+		if( result_lists[index_1].start_list==NULL && result_lists[index_2].start_list==NULL){
+			result_init(&result_lists[index_1]);
+			result_init(&result_lists[index_2]);
+			copy_result(&result_lists[index_2], tmp_list2);
+			copy_result(&result_lists[index_1], tmp_list1);
+		}
+		else if(result_lists[index_1].start_list!=NULL  && result_lists[index_2].start_list==NULL){
+
+		}
 	}
 
+	printf("END update_results\n");
+}
 
+void update_interlists(result *result_lists, result *combined_result, result *tmp_list1, uint64_t index_1, result *tmp_list2, uint64_t index_2){
+	result temp_lists[4];
+	for (int i = 0; i < 4; ++i){
+		if( result_lists[i].start_list!=NULL){
+			result_init(&temp_lists[i]);
+			copy_result(&temp_lists[i], &result_lists[i]);
+
+			free_result(&result_lists[i]);
+			result_lists[i].start_list=NULL;
+			result_lists[i].list_size=0;
+			result_lists[i].counter=0;
+
+			result_init(&result_lists[i]);
+		}
+	}
+
+	struct node *current_node;
+	current_node = combined_result-> start_list;
+	int * temp = current_node->buffer_start;	
+
+	struct node *current_node_inner;
+	int * temp_inner;
+
+	int row;
+
+	for (int i = 0; i < combined_result->list_size; ++i)
+	{    	
+		while((void*)temp < current_node->buffer){
+			for (int j = 0; j < 4; ++j)
+			{
+				if (temp_lists[j].start_list==NULL){
+					continue;	
+				}
+				int buffer;
+				int offset;
+
+				int index = *temp;
+				buffer = index/BUFFER;
+				offset = index%BUFFER;
+
+				current_node_inner = temp_lists[j].start_list;
+				for(int k=0; k<buffer ; k++){
+					if(current_node_inner->next!=NULL){
+						current_node_inner =current_node_inner->next;
+					}
+				}
+				temp_inner = current_node_inner->buffer_start+offset;
+
+				row = *temp_inner;
+				insert_inter(row, &result_lists[j]);
+				
+			}
+
+    		temp=temp+1;
+		}
+
+		if(current_node->next != NULL){
+			current_node = current_node->next;
+			temp = current_node->buffer_start;
+		}
+	}
+}
+
+void copy_result(result *dest, result *source){
+	int i, j;
+	struct node *current_node;
+	current_node = source-> start_list;
+	int * temp = current_node->buffer_start;
+
+    j = 0;
+	for(i = 0; i < source->list_size; i++){
+    
+    	while((void*)temp < current_node->buffer){
+    		insert_inter(*temp,dest);
+    		temp=temp+1;
+		}
+
+		if(current_node->next != NULL){
+			current_node = current_node->next;
+			temp = current_node->buffer_start;
+		}
+    }	
 }
 
 void create_relation(struct relation* rel, struct file_info *info, int rel_id, uint64_t column){
@@ -219,9 +273,7 @@ void create_relation(struct relation* rel, struct file_info *info, int rel_id, u
     rel->num_tuples = info[rel_id].num_tup;
     col_ptr = info[rel_id].col_array[column];
 
-    printf("REL: %d COL: %llu rows: %d \n", rel_id, column, rel->num_tuples);
-    
-    printf("    -->%llu\n", *col_ptr);
+    printf("REL: %d COL: %lu rows: %d \n", rel_id, column, rel->num_tuples);
     
     rel->tuples = (struct tuple*)malloc(rel->num_tuples*sizeof(struct tuple));
 
@@ -252,6 +304,35 @@ void create_rel_from_list(struct relation* rel, struct result* result, struct fi
 
 		    rel -> tuples[j].key = *temp;   					//!!!!!!!!!!!!!!!!!!!!!??
 	    	rel -> tuples[j].payload = *(col_ptr + *(temp));
+            temp = temp + 1;
+	    	j++;
+		}
+
+		if(current_node->next != NULL){
+			current_node = current_node->next;
+			temp = current_node->buffer_start;
+		}
+    }
+
+}
+
+void list_to_rel_with_indexes(struct relation* rel, struct result* result){
+
+	int i, j;
+	struct node *current_node;
+	current_node = result -> start_list;
+	int * temp = current_node->buffer_start;
+
+	rel -> num_tuples = result -> counter;
+
+	rel -> tuples = (struct tuple*)malloc(rel->num_tuples*sizeof(struct tuple));
+    j = 0;
+	for(i = 0; i < result -> list_size; i++){
+    
+    	while((void*)temp < current_node->buffer){
+
+		    rel -> tuples[j].key = i;   					//!!!!!!!!!!!!!!!!!!!!!??
+	    	rel -> tuples[j].payload = *temp;
             temp = temp + 1;
 	    	j++;
 		}
@@ -328,7 +409,7 @@ void calculate_sum(struct result* result, struct query_info *query, struct file_
 		}   
     }
     printf("\t\t\t------------------SUM-------------------------\n");
-    printf("\t\t\t REL: %d, COLUMN: %llu SUM: %llu\n", rel_key, column, sum);
+    printf("\t\t\t REL: %d, COLUMN: %lu SUM: %lu\n", rel_key, column, sum);
     printf("\t\t\t----------------------------------------------\n");
 
 }
@@ -410,7 +491,7 @@ void calculate_priority(struct priority *priority, struct query_info *query, str
 
 	/*Print priorities*/
 	for(i=0; i < num_pred; i++){
-		printf("Priorities: %d - value: %llu\n", priority[i].key, priority[i].value);
+		printf("Priorities: %d - value: %lu\n", priority[i].key, priority[i].value);
 	}
 
 

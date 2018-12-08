@@ -20,6 +20,8 @@ struct node{
 typedef struct result{
 	struct node *start_list; //pointer to the first node of the list 
 	int list_size;			 //the size of the list
+
+	int counter;             //number of elements in the list ///////
 }result;
 
 /*Initialization of the results list*/
@@ -30,5 +32,8 @@ void insert_result(int rowR, int rowS ,result* result);
 void print_result(result* result);
 
 void free_result(result* res);
+
+void insert_inter(int row, result* result);
+
 
 #endif /*result.h*/

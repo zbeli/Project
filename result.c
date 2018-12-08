@@ -8,6 +8,8 @@ void result_init(result* result){
 	result->start_list -> buffer = result->start_list -> buffer_start;		
 	result->start_list -> next = NULL; 
 	result->list_size = 1;
+
+	result->counter = 0;
 }
 
 
@@ -50,6 +52,46 @@ void insert_result(int rowR, int rowS ,result* result){
 	*ptr = rowS;
 	current_node -> buffer = current_node -> buffer + sizeof(int);
 
+	result -> counter = result -> counter + 2; 
+
+}
+
+/////////////////////////////////////////////////////////////////////
+void insert_inter(int row, result* result){
+	int i;
+	int * ptr;
+	struct node *current_node;
+	current_node = result->start_list;
+
+	//Go to the current bucket 
+	for (i = 1; i < result->list_size; i++){
+		if(current_node -> next != NULL){
+			current_node = current_node -> next;
+		}
+	}
+
+	// Allocate new bucket if necessary
+	if(current_node -> buffer_end - current_node->buffer < sizeof(int)){
+		// printf("New bucket\n");
+
+		current_node -> next = (struct node*)malloc(sizeof(struct node));
+		current_node -> next -> buffer_start = (void*)malloc(BUFFER);
+		
+		current_node = current_node -> next;
+
+		current_node -> buffer = current_node -> buffer_start;		
+		current_node -> buffer_end = current_node -> buffer_start + BUFFER; 	
+		current_node -> next = NULL;
+
+		result->list_size++;
+
+	}
+
+	ptr = current_node -> buffer;
+
+	*ptr = row;
+	current_node -> buffer = current_node -> buffer + sizeof(int);
+	result -> counter++;
 }
 
 void print_result(result* result){

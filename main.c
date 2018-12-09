@@ -25,8 +25,8 @@
 
 
 
-// #define PATH "/home/zisis/Desktop/submission/submission/workloads/small/"
-#define PATH "/home/panos/Desktop/small/"
+#define PATH "/home/zisis/Desktop/submission/submission/workloads/small/"
+// #define PATH "/home/panos/Desktop/small/"
 
 void filter(struct relation *rel, struct result * result, struct file_info *info, int rel_id, uint64_t column, uint64_t value, char op);
 

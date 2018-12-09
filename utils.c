@@ -286,6 +286,7 @@ void update_interlists(result *result_lists, result *combined_result, result *tm
 						continue;	
 					}
 					
+                    item_exists(tmp_list1, *temp, &result_lists[j]);
 
 					
 				}
@@ -356,9 +357,9 @@ void item_exists(struct result * result, int row, struct result * dest){
 	for(i = 0; i < result -> list_size; i++){
 		while((void*)temp < current_node->buffer){
 
-			if(*temp == row){
+			// if(*temp == row){
 				insert_inter(row, dest);			
-			}
+			// }
 			temp = temp + 1;    //keep searching
 		}
 		/*go to next node of the list*/

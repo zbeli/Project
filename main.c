@@ -48,7 +48,7 @@ int main(void){
 	// 	printf("%c ",S[i]);
 	// }
 
-    struct relation relR;
+/*    struct relation relR;
     relR.num_tuples = r_size;
     relR.tuples = (struct tuple*)malloc(relR.num_tuples*sizeof(struct tuple));
     for (i = 0; i < relR.num_tuples; i++){
@@ -62,7 +62,7 @@ int main(void){
     for (i = 0; i < relS.num_tuples; i++){
     	relS.tuples[i].key = i+1;
     	relS.tuples[i].payload = S[i];
-    }
+    }*/
 
 
     // res = RadixHashJoin(&relR, &relS);
@@ -412,18 +412,23 @@ int main(void){
                 create_rel_from_list(&rel_S, &(result_lists[pred.tuple_2.rel]), info, rel_2, col_2);
 
 			}
-
+// if(i==1){
+// 	for(int k=0; k<rel_R.num_tuples ; k++){
+// 		printf("%lu\n", rel_R.tuples[k].key);
+// 	}
+// 	// return;
+// }
 			printf("RELATIONS: %d %d\n", rel_1, rel_2);
 
 			res = RadixHashJoin(&rel_R, &rel_S);
 
 			result_init(&tmp_list1);
 			result_init(&tmp_list2);
-			create_interlist(res, &tmp_list1, &tmp_list2, &temp_q, info, i);
+			create_interlist(res, &tmp_list1, &tmp_list2, info);
 
 
 
-			update_results(result_lists, &tmp_list1, pred.tuple_1.rel, &tmp_list2, pred.tuple_2.rel, res);
+			update_results(result_lists, &tmp_list1, pred.tuple_1.rel, &tmp_list2, pred.tuple_2.rel, res, info);
 free_result(res);
 res->start_list=NULL;
 res->list_size=0;
@@ -457,7 +462,7 @@ res->counter=0;
 
             // print_result(&tmp_list1);
 
-			update_results(result_lists, &tmp_list1, temp_q.preds[i].tuple_1.rel, NULL, -1, NULL);	// paparia
+			update_results(result_lists, &tmp_list1, temp_q.preds[i].tuple_1.rel, NULL, -1, NULL, info);	// paparia
 			//print_result(&result_lists[temp_q.preds[i].tuple_1.rel]);
 
 			free_result(&tmp_list1);
@@ -474,8 +479,9 @@ res->counter=0;
 
 printf("lalalalalalla\n");
 printf("size : %d\n", result_lists[1].counter);
-	calculate_sum(&result_lists[0], &temp_q, info, 9, 3);
-	calculate_sum(&result_lists[1], &temp_q, info, 0, 0);
+	calculate_sum(&result_lists[0], &temp_q, info, 6, 0);
+	calculate_sum(&result_lists[1], &temp_q, info, 1, 0);
+	calculate_sum(&result_lists[2], &temp_q, info, 11, 0);
 printf("lelelelelelelelele\n");
 	// printf("ALL OK UNTIL HERE!!!\n");
 

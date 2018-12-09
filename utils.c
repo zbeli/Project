@@ -140,7 +140,7 @@ void print_sums(result *res, struct query_info *query){
 	}
 }
 
-void update_results(result *result_lists, result *tmp_list1, uint64_t index_1, result *tmp_list2, uint64_t index_2, result* res){
+void update_results(result *result_lists, result *tmp_list1, uint64_t index_1, result *tmp_list2, uint64_t index_2, result* res, struct file_info* info){
 	if(tmp_list2 == NULL){
 		printf("Update_Results FILTER\n");
 
@@ -162,7 +162,7 @@ for (int i = 0; i < relS.num_tuples; ++i){
 			combined_result = RadixHashJoin(&relR, &relS);
 	printf("combined_result list_size %d\n",combined_result->list_size);
 
-			update_interlists(result_lists, combined_result, tmp_list1, index_1, NULL, -1);
+			update_interlists(result_lists, combined_result, tmp_list1, index_1, NULL, -1, info);
 		}
 		else{
 			result_init(&result_lists[index_1]);
@@ -174,7 +174,7 @@ for (int i = 0; i < relS.num_tuples; ++i){
 		printf("Update_Results JOIN\n");
 
 		result *combined_result;
-
+			printf("index_1 %lu -- index_2 %lu \n",index_1, index_2);
 		if( result_lists[index_1].start_list==NULL && result_lists[index_2].start_list==NULL){
 			result_init(&result_lists[index_1]);
 			result_init(&result_lists[index_2]);
@@ -190,7 +190,7 @@ printf("result index2 counter %d 	relS counter %d\n",tmp_list1->counter, relS.nu
 	calculate_sum(tmp_list1, &temp_q, info, 1, 0);
 			combined_result = RadixHashJoin(&relR, &relS);	
 	printf(" _______________combined_result list_size %d counter%d\n",combined_result->list_size, combined_result->counter);*/		
-			update_interlists(result_lists, res, tmp_list1, index_1,tmp_list2, index_2);
+			update_interlists(result_lists, res, tmp_list1, index_1,tmp_list2, index_2, info);
 /*			free_result(combined_result);
 						combined_result->start_list=NULL;
 			combined_result->list_size=0;
@@ -201,7 +201,7 @@ printf("result index2 counter %d 	relS counter %d\n",tmp_list1->counter, relS.nu
 	printf("END update_results\n");
 }
 
-void update_interlists(result *result_lists, result *combined_result, result *tmp_list1, uint64_t index_1, result *tmp_list2, uint64_t index_2){
+void update_interlists(result *result_lists, result *combined_result, result *tmp_list1, uint64_t index_1, result *tmp_list2, uint64_t index_2, struct file_info* info){
 	result temp_lists[4];
 	for (int i = 0; i < 4; ++i){
 		if( result_lists[i].start_list!=NULL){
@@ -276,63 +276,17 @@ void update_interlists(result *result_lists, result *combined_result, result *tm
 	}
 	else{
 		result_init(&result_lists[index_2]);
-		int row_2;
-		current_node = tmp_list1-> start_list;
-		temp = current_node->buffer_start;
-		for (int i = 0; i < tmp_list1->list_size; ++i){   	
-			while((void*)temp < current_node->buffer){
-				for (int j = 0; j < 4; ++j){
-					if (temp_lists[j].start_list==NULL || j==index_2 || j==index_1){
-						continue;	
-					}
-					
 
-					
-				}
-								//return;
-				// temp=temp+1;
-	    		 temp=temp+1;
-			}
-			if(current_node->next != NULL){
-				current_node = current_node->next;
-				temp = current_node->buffer_start;
-			}
-		}
+
+
+		copy_result(&result_lists[0], &temp_lists[0]);
+
 
 		copy_result(&result_lists[index_1], tmp_list1);
 		copy_result(&result_lists[index_2], tmp_list2);
-		// result_init(&result_lists[index_2]);
-		// int row_2;
 
-/*		current_node = combined_result-> start_list;
-		temp = current_node->buffer_start;
-		for (int i = 0; i < combined_result->list_size; ++i){   	
-			while((void*)temp < current_node->buffer){
-				//printf("%d\n",i );
-				int index = *(temp+1);
-				buffer = index/BUFFER;		offset = index%BUFFER;
 
-				current_node_inner = tmp_list2->start_list;
-				for(int k=0; k<buffer ; k++){
-					printf("PARADEIGMA ME POLLOUS BUFFER\n");
-					if(current_node_inner->next!=NULL){
-						current_node_inner =current_node_inner->next;
-					}
-				}
-				temp_inner = (current_node_inner->buffer_start)+offset*sizeof(int);	// ama alla3oume ta int kai auta 
-
-				row_2 = *temp_inner;
-				insert_inter(row_2, &result_lists[index_2]);
-
-				temp=temp+2;
-			}
-			if(current_node->next != NULL){
-				current_node = current_node->next;
-				temp = current_node->buffer_start;
-			}
-		}*/
-
-		printf("combined_result counter %d\n", (combined_result->counter)/2);
+		printf("\ncombined_result counter %d\n", (combined_result->counter)/2);
 		for (int i = 0; i < 4; ++i){
 			if( result_lists[i].start_list!=NULL){
 				printf("Result %d counter %d\n",i,result_lists[i].counter);
@@ -356,9 +310,9 @@ void item_exists(struct result * result, int row, struct result * dest){
 	for(i = 0; i < result -> list_size; i++){
 		while((void*)temp < current_node->buffer){
 
-			if(*temp == row){
+			//if(*temp == row){
 				insert_inter(row, dest);			
-			}
+			//}
 			temp = temp + 1;    //keep searching
 		}
 		/*go to next node of the list*/
@@ -408,6 +362,58 @@ void create_relation(struct relation* rel, struct file_info *info, int rel_id, u
     	// printf("%llu ", *(col_ptr+i));
     	rel -> tuples[i].payload = *(col_ptr+i);
     	// printf("%llu ", rel->tuples[i].payload);
+    }
+}
+
+void create_rel_from_list_1(struct relation* rel, struct result* result, struct file_info *info, int rel_id, uint64_t column){
+
+	int i, j;
+	uint64_t *col_ptr; /*pointer to the column of the relation*/
+	struct node *current_node;
+	current_node = result -> start_list;
+	int * temp = current_node->buffer_start;
+
+relation *t_rel;
+t_rel = (relation*)malloc(sizeof(relation));
+	t_rel -> num_tuples = 0;
+    col_ptr = info[rel_id].col_array[column];
+
+	t_rel -> tuples = (struct tuple*)malloc((result->counter)*sizeof(struct tuple));
+    j = 0;
+    int flag=0;
+	for(i = 0; i < result -> list_size; i++){
+    
+    	while((void*)temp < current_node->buffer){
+    		for(int k=0; k<t_rel->num_tuples; k++){
+    			if(t_rel -> tuples[k].key == *temp){
+    				flag = 1;
+    				break;
+    			}
+    		}
+    		if(flag ==0 ){
+    			t_rel -> tuples[j].key = *temp;   					//!!!!!!!!!!!!!!!!!!!!!??
+    			t_rel -> tuples[j].payload = *(col_ptr + *(temp));
+    			t_rel -> num_tuples++;
+    			j++;
+    		}
+
+    		flag=0;
+            temp = temp + 1;
+	    	//j++;
+		}
+
+		if(current_node->next != NULL){
+			current_node = current_node->next;
+			temp = current_node->buffer_start;
+		}
+    }
+
+    rel->num_tuples = 0;
+    rel->tuples = (struct tuple*)malloc(t_rel->num_tuples*sizeof(struct tuple));
+    for(int k=0; k<t_rel->num_tuples; k++){
+    	rel->tuples[k].key = t_rel -> tuples[k].key;   					//!!!!!!!!!!!!!!!!!!!!!??
+    	rel->tuples[k].payload = t_rel -> tuples[k].payload;
+    	rel-> num_tuples++;
     }
 }
 
@@ -472,7 +478,7 @@ void list_to_rel_with_indexes(struct relation* rel, struct result* result){
 }
 
 // void create_interlist(struct result *result, struct result* list1, struct result* list2, int rel1, int rel2, struct file_info* info){
-void create_interlist(struct result *result, struct result* list1, struct result* list2, struct query_info * query, struct file_info* info, int pred_id){
+void create_interlist(struct result *result, struct result* list1, struct result* list2, struct file_info* info){
 
 	// printf("\t\t ----------------CREATE INTERLIST------------------\n");
 	int i;
@@ -481,10 +487,10 @@ void create_interlist(struct result *result, struct result* list1, struct result
 	int row_1, row_2;
 	int* temp = current_node -> buffer_start;
 
-	int rel1 = query->rels[query -> preds[pred_id].tuple_1.rel];
+/*	int rel1 = query->rels[query -> preds[pred_id].tuple_1.rel];
 	uint64_t col1 = query -> preds[pred_id].tuple_1.col;
 	int rel2 = query->rels[query -> preds[pred_id].tuple_2.rel];
-	uint64_t col2 = query -> preds[pred_id].tuple_2.col;
+	uint64_t col2 = query -> preds[pred_id].tuple_2.col;*/
 
 	int j = 0; //debug
 

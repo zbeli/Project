@@ -140,7 +140,7 @@ void print_sums(result *res, struct query_info *query){
 	}
 }
 
-void update_results(result *result_lists, result *tmp_list1, uint64_t index_1, result *tmp_list2, uint64_t index_2){
+void update_results(result *result_lists, result *tmp_list1, uint64_t index_1, result *tmp_list2, uint64_t index_2, result* res){
 	if(tmp_list2 == NULL){
 		printf("Update_Results FILTER\n");
 
@@ -160,6 +160,7 @@ for (int i = 0; i < relS.num_tuples; ++i){
 }*/
 
 			combined_result = RadixHashJoin(&relR, &relS);
+	printf("combined_result list_size %d\n",combined_result->list_size);
 
 			update_interlists(result_lists, combined_result, tmp_list1, index_1, NULL, -1);
 		}
@@ -181,13 +182,19 @@ for (int i = 0; i < relS.num_tuples; ++i){
 			copy_result(&result_lists[index_1], tmp_list1);
 		}
 		else if(result_lists[index_1].start_list!=NULL  && result_lists[index_2].start_list==NULL){
-			relation relR, relS;
+/*			relation relR, relS;
 			list_to_rel_with_indexes(&relR, &result_lists[index_1]);
+printf("result index1 counter %d 	relR counter %d\n",result_lists[index_1].counter, relR.num_tuples);
 			list_to_rel_with_indexes(&relS, tmp_list1);
-
+printf("result index2 counter %d 	relS counter %d\n",tmp_list1->counter, relS.num_tuples);
+	calculate_sum(tmp_list1, &temp_q, info, 1, 0);
 			combined_result = RadixHashJoin(&relR, &relS);	
-			
-			update_interlists(result_lists, combined_result, tmp_list1, index_1,tmp_list2, index_2);				
+	printf(" _______________combined_result list_size %d counter%d\n",combined_result->list_size, combined_result->counter);*/		
+			update_interlists(result_lists, res, tmp_list1, index_1,tmp_list2, index_2);
+/*			free_result(combined_result);
+						combined_result->start_list=NULL;
+			combined_result->list_size=0;
+			combined_result->counter=0;*/
 		}
 	}
 
@@ -215,43 +222,38 @@ void update_interlists(result *result_lists, result *combined_result, result *tm
 		}
 	}
 
+	struct node *current_node;
+	current_node = combined_result-> start_list;
+	int * temp = current_node->buffer_start;	
+
+	struct node *current_node_inner;
+	int * temp_inner;
+
+	int row;
+ 	int buffer;		int offset;
+
 	if(tmp_list2==NULL){		//	filter
-		struct node *current_node;
-		current_node = combined_result-> start_list;
-		int * temp = current_node->buffer_start;	
 
-		struct node *current_node_inner;
-		int * temp_inner;
-
-		int row;
- 		int buffer;		int offset;
-print_result(combined_result);
 		for (int i = 0; i < combined_result->list_size; ++i){   	
 			while((void*)temp < current_node->buffer){
 				for (int j = 0; j < 4; ++j){
 					if (temp_lists[j].start_list==NULL){
-						printf("%d CONTINUE\n", j);
 						continue;	
 					}
-printf("%d\n", j);
 					int index = *temp;
 					buffer = index/BUFFER;		offset = index%BUFFER;
 
-					printf("============== %d -- %d\n",buffer, offset);
-
 					current_node_inner = temp_lists[j].start_list;
-printf("lalalalalalalalla\n");
 					for(int k=0; k<buffer ; k++){
-printf("************** %d\n", k);
+						printf("PARADEIGMA ME POLLOUS BUFFER\n");
 						if(current_node_inner->next!=NULL){
 							current_node_inner =current_node_inner->next;
 						}
 					}
-					temp_inner = (current_node_inner->buffer_start)+offset*sizeof(int);
+					temp_inner = (current_node_inner->buffer_start)+offset*sizeof(int);	// ama alla3oume ta int kai auta 
 
 
 					row = *temp_inner;
-printf("+++++++++++++++++ %d\n", row);
 					insert_inter(row, &result_lists[j]);
 					//print_result(&result_lists[j]);
 
@@ -264,6 +266,105 @@ printf("+++++++++++++++++ %d\n", row);
 				current_node = current_node->next;
 				temp = current_node->buffer_start;
 			}
+		}
+		printf("combined_result counter %d\n", (combined_result->counter)/2);
+		for (int i = 0; i < 4; ++i){
+			if( result_lists[i].start_list!=NULL){
+				printf("Result %d counter %d\n",i,result_lists[i].counter);
+			}
+		}
+	}
+	else{
+		result_init(&result_lists[index_2]);
+		int row_2;
+		current_node = tmp_list1-> start_list;
+		temp = current_node->buffer_start;
+		for (int i = 0; i < tmp_list1->list_size; ++i){   	
+			while((void*)temp < current_node->buffer){
+				for (int j = 0; j < 4; ++j){
+					if (temp_lists[j].start_list==NULL || j==index_2 || j==index_1){
+						continue;	
+					}
+					
+
+					
+				}
+								//return;
+				// temp=temp+1;
+	    		 temp=temp+1;
+			}
+			if(current_node->next != NULL){
+				current_node = current_node->next;
+				temp = current_node->buffer_start;
+			}
+		}
+
+		copy_result(&result_lists[index_1], tmp_list1);
+		copy_result(&result_lists[index_2], tmp_list2);
+		// result_init(&result_lists[index_2]);
+		// int row_2;
+
+/*		current_node = combined_result-> start_list;
+		temp = current_node->buffer_start;
+		for (int i = 0; i < combined_result->list_size; ++i){   	
+			while((void*)temp < current_node->buffer){
+				//printf("%d\n",i );
+				int index = *(temp+1);
+				buffer = index/BUFFER;		offset = index%BUFFER;
+
+				current_node_inner = tmp_list2->start_list;
+				for(int k=0; k<buffer ; k++){
+					printf("PARADEIGMA ME POLLOUS BUFFER\n");
+					if(current_node_inner->next!=NULL){
+						current_node_inner =current_node_inner->next;
+					}
+				}
+				temp_inner = (current_node_inner->buffer_start)+offset*sizeof(int);	// ama alla3oume ta int kai auta 
+
+				row_2 = *temp_inner;
+				insert_inter(row_2, &result_lists[index_2]);
+
+				temp=temp+2;
+			}
+			if(current_node->next != NULL){
+				current_node = current_node->next;
+				temp = current_node->buffer_start;
+			}
+		}*/
+
+		printf("combined_result counter %d\n", (combined_result->counter)/2);
+		for (int i = 0; i < 4; ++i){
+			if( result_lists[i].start_list!=NULL){
+				printf("Result %d counter %d\n",i,result_lists[i].counter);
+			}
+		}
+
+	}
+}
+
+void item_exists(struct result * result, int row, struct result * dest){
+	// printf("\t\t ITEM_EXISTS\n");
+	int i;
+	uint64_t *col_ptr;
+	int flag_exists = 0;
+	struct node *current_node;
+	current_node = result -> start_list;
+
+	int* temp = current_node->buffer_start;
+
+
+	for(i = 0; i < result -> list_size; i++){
+		while((void*)temp < current_node->buffer){
+
+			if(*temp == row){
+				insert_inter(row, dest);			
+			}
+			temp = temp + 1;    //keep searching
+		}
+		/*go to next node of the list*/
+		if(current_node -> next != NULL){
+			current_node = current_node->next;
+			temp = current_node -> buffer_start;
 		}
 	}
 }

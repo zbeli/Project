@@ -422,8 +422,12 @@ int main(void){
 			create_interlist(res, &tmp_list1, &tmp_list2, &temp_q, info, i);
 
 
-			update_results(result_lists, &tmp_list1, pred.tuple_1.rel, &tmp_list2, pred.tuple_2.rel);
 
+			update_results(result_lists, &tmp_list1, pred.tuple_1.rel, &tmp_list2, pred.tuple_2.rel, res);
+free_result(res);
+res->start_list=NULL;
+res->list_size=0;
+res->counter=0;
             free_result(&tmp_list1);
             free_result(&tmp_list2);
             tmp_list1.start_list=NULL;
@@ -437,7 +441,7 @@ int main(void){
 
 		    // calculate_sum(&result_lists[1], &temp_q, info);
             // print_result(&tmp_list2);
-            //print_result(&result_lists[2]);
+      //       //print_result(&result_lists[2]);
 		    if(i == 1 ){
 		    	break;}	//debug
             // break;   //debug
@@ -453,23 +457,25 @@ int main(void){
 
             // print_result(&tmp_list1);
 
-			update_results(result_lists, &tmp_list1, temp_q.preds[i].tuple_1.rel, NULL, -1);
+			update_results(result_lists, &tmp_list1, temp_q.preds[i].tuple_1.rel, NULL, -1, NULL);	// paparia
 			//print_result(&result_lists[temp_q.preds[i].tuple_1.rel]);
 
-			// free_result(&tmp_list1);
-   //          tmp_list1.start_list=NULL;
-   //          tmp_list1.list_size=0;
-   //          tmp_list1.counter=0;			
+			free_result(&tmp_list1);
+            tmp_list1.start_list=NULL;
+            tmp_list1.list_size=0;
+            tmp_list1.counter=0;			
 		    
 		    printf("Counter: %d\n", result_lists[pred.tuple_1.rel].counter);
-		    print_result(&result_lists[0]);
+		    // print_result(&result_lists[0]);
 		    if(i == 0 ){
 		    	break;}	//debug
 		}
 	}	/*For every predicate*/
 
 printf("lalalalalalla\n");
-	calculate_sum(&result_lists[0], &temp_q, info, 0, 0);
+printf("size : %d\n", result_lists[1].counter);
+	calculate_sum(&result_lists[0], &temp_q, info, 9, 3);
+	calculate_sum(&result_lists[1], &temp_q, info, 0, 0);
 printf("lelelelelelelelele\n");
 	// printf("ALL OK UNTIL HERE!!!\n");
 
@@ -506,47 +512,3 @@ void filter(struct relation *rel,struct result * result, struct file_info *info,
 	    }
     }
 }
-////////////////////////////////////////////////////////////////////
-////////////////////////////////////////////////////////////////////
-int count = 0; 	//debug
-
-void item_exists(struct result * result, int row, struct file_info* info, int rel, uint64_t column){
-	// printf("\t\t ITEM_EXISTS\n");
-	int i;
-	uint64_t *col_ptr;
-	int flag_exists = 0;
-	struct node *current_node;
-	current_node = result -> start_list;
-
-	int* temp = current_node->buffer_start;
-    col_ptr = info[rel].col_array[column];
-
-    uint64_t value = *(col_ptr + row);
-
-	for(i = 0; i < result -> list_size; i++){
-		while((void*)temp < current_node->buffer){
-
-			if(*temp != row){ 			
-			// if(*(col_ptr + *(temp))  != value){ 
-				temp = temp + 1;    //keep searching
-			}
-			else{
-
-			    flag_exists = 1;    //we found it, don't insert it in the list
-				return;
-			}
-		}
-		/*go to next node of the list*/
-		if(current_node -> next != NULL){
-			current_node = current_node->next;
-			temp = current_node -> buffer_start;
-		}
-	}
-
-	/*If the element doesn't exist insert it in the list */
-	if(flag_exists == 0){
-		// count++;			//debug
-		insert_inter(row, result);
-	}
-}
-

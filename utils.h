@@ -65,7 +65,7 @@ void insert_inter(int row, result* result);
 
 void print_sums(result *res, struct query_info *query);
 
-void update_results(result *result_lists, result *tmp_list1, uint64_t index_1, result *tmp_list2, uint64_t index_2);
+void update_results(result *result_lists, result *tmp_list1, uint64_t index_1, result *tmp_list2, uint64_t index_2, result* res);
 
 ///////////////////////////
 void calculate_priority(struct priority *priority, struct query_info *query, struct file_info *info);
@@ -80,6 +80,8 @@ void list_to_rel_with_indexes(struct relation* rel, struct result* result);
 void copy_result(result *dest, result *source);
 
 void update_interlists(result *result_lists, result *combined_result, result *tmp_list1, uint64_t index_1, result *tmp_list2, uint64_t index_2);
+
+void item_exists(struct result * result, int row, struct result * dest);
 
 #endif /*utils.h*/
 

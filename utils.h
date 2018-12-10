@@ -4,11 +4,10 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdint.h>
-
 #include <string.h>
 
-#include "result.h"
 #include "str.h"
+#include "result.h"
 
 /*information about relations*/
 struct file_info {
@@ -25,7 +24,7 @@ struct priority{
 };		
 
 struct rel_col_tuple {
-	uint64_t rel;   //id of relation
+	int rel;   //id of relation
 	uint64_t col;	//id of column
 };
 
@@ -47,32 +46,26 @@ struct query_info {
 	int pred_count;
 	int cols_count;
 
-	uint64_t* rels;   						//relations involved in query
+	int* rels;   						//relations involved in query
 
 	struct predicate* preds;   				//predicates
 	struct rel_col_tuple* cols_to_print;	//columns to print
 };
 
+struct rel_info{
+	int	rel_id;
+	int rel_key;	// 0 1 2 3
+};
 
-void create_col_array(struct file_info* info, uint64_t * data);
-void print_query_info(struct query_info* query);
-void insert_pred(struct query_info* query, char* pred, int index);
 
-
-result* comparison_query(struct file_info *info, uint64_t rel, uint64_t col, int value, char comp_op, result *results);
-//void print_sums(result *res, struct query_info *query);
 void insert_inter(int row, result* result);
-
-void print_sums(result *res, struct query_info *query);
 
 void update_results(result *result_lists, result *tmp_list1, uint64_t index_1, result *tmp_list2, uint64_t index_2, result* res, struct file_info* info);
 
-///////////////////////////
-void calculate_priority(struct priority *priority, struct query_info *query, struct file_info *info);
-void calculate_sum(struct result* result, struct query_info *query, struct file_info *info, int rel_key, uint64_t column);
-
 void create_relation(struct relation* rel, struct file_info *info, int rel_id, uint64_t column);
+
 void create_rel_from_list(struct relation* rel, struct result* result, struct file_info *info, int rel_id, uint64_t column);
+
 void create_interlist(struct result *result, struct result* list1, struct result* list2, struct file_info* info);
 
 void list_to_rel_with_indexes(struct relation* rel, struct result* result);

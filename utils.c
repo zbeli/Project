@@ -1,125 +1,4 @@
 #include "utils.h"
-#include "result.h"
-
-#include <string.h>
-
-void create_col_array(struct file_info *info, uint64_t * data){
-	int i;
-	info -> col_array = (uint64_t**)malloc((info -> num_col)*sizeof(uint64_t*));
-	for(i = 0; i < info -> num_col; i++){
-		info -> col_array[i] = (data + i*info->num_tup + 2);
-	}
-}
-
-void print_query_info(struct query_info* query){
-	printf("Sxeseis %d\n", query->rel_count);
-	for(int i=0 ; i<query->rel_count ; i++){
-		// printf("rel:%lu\n",query->rels[i]);
-	}
-	printf("--------------------\n");
-	printf("Predicates %d\n", query->pred_count);
-	for(int i=0 ; i<query->pred_count ; i++){
-		if(query->preds[i].value==-1){
-			// printf("rel1:%lu col1:%lu - operator:%c - rel2:%lu col2:%lu\n",query->preds[i].tuple_1.rel, query->preds[i].tuple_1.col, query->preds[i].op , query->preds[i].tuple_2.rel, query->preds[i].tuple_2.col);
-		}
-		else{
-			// printf("rel1:%lu col1:%lu - operator:%c - value:%d\n",query->preds[i].tuple_1.rel, query->preds[i].tuple_1.col, query->preds[i].op , query->preds[i].value);
-		}
-	}
-	printf("--------------------\n");
-	printf("Provoles %d\n", query->cols_count);
-	for(int i=0 ; i<query->cols_count ; i++){
-		// printf("rel:%lu col:%lu\n", query->cols_to_print[i].rel, query->cols_to_print[i].col);
-	}
-}
-
-void insert_pred(struct query_info* query, char* pred, int index){
-	char delimeter[2];
-	for(int i=0 ; i<strlen(pred) ; i++){
-		if(pred[i]=='=' || pred[i]=='<' || pred[i]=='>'){
-			delimeter[0] = pred[i];
-			delimeter[1] = '\0';
-		}
-	}
-	char *token;
-
-	token = strtok_r(pred, ".",&pred);
-	query->preds[index].tuple_1.rel = atoi(token);
-
-	token = strtok_r(pred, delimeter,&pred);
-	query->preds[index].tuple_1.col = atoi(token);
-
-	query->preds[index].op = delimeter[0];
-
-	char *tok;
-	token = strtok_r(pred, ".",&pred);
-	tok = strtok_r(pred, ".",&pred);
-
-	if(tok==NULL){
-		query->preds[index].flag = 0;
-		query->preds[index].value = atoi(token);
-	}
-	else{
-		query->preds[index].tuple_2.rel = atoi(token);
-		query->preds[index].tuple_2.col = atoi(tok);
-
-		query->preds[index].flag = -1;
-	}
-}
-
-
-result* comparison_query(struct file_info *info, uint64_t rel, uint64_t col, int value, char comp_op, result *results){
-	result_init(results);
-
-	int count=0;
-	for(int i=0 ; i<info[rel].num_tup ; i++){
-		if(comp_op=='='){
-			if(info[rel].col_array[col][i] == value){
-				count++;
-				insert_inter(i, results);			
-			}
-
-		}
-		else if(comp_op=='>'){
-			if(info[rel].col_array[col][i] > value){
-				count++;
-				insert_inter(i, results);		
-			}
-		}
-		else if(comp_op=='<'){
-			if(info[rel].col_array[col][i] < value){
-				count++;
-				insert_inter(i, results);					
-			}
-		}
-
-	}
-}
-
-void print_sums(result *res, struct query_info *query){
-	struct node *current_node;
-	void * temp;
-
-	int index;
-	uint64_t sum;
-	for(int i = 0; i < query->cols_count ; i++){
-		sum = 0;
-		current_node = res[index].start_list;
-		temp = current_node->buffer_start;
-
-		for(int j=0 ; j<res[index].list_size ; j++){
-			while(temp < current_node->buffer){
-				sum += *(int*)temp;//////////////////////////////////////////
-				temp = temp + sizeof(int);
-			}
-			if(current_node->next != NULL){
-				current_node = current_node->next;
-				temp = current_node->buffer_start;
-			}
-		}
-		printf("rel:%lu col:%lu %lu\n", query->cols_to_print[i].rel, query->cols_to_print[i].col, sum);
-	}
-}
 
 void update_results(result *result_lists, result *tmp_list1, uint64_t index_1, result *tmp_list2, uint64_t index_2, result* res, struct file_info* info){
 	if(tmp_list2 == NULL){
@@ -230,27 +109,38 @@ void update_interlists(result *result_lists, result *combined_result, result *tm
 		result_init(&result_lists[index_2]);
 
         relation relat1, old_relat1, relat6;
-        create_rel_from_list_1(&old_relat1, &temp_lists[1], info, 1, 0);
-        create_rel_from_list(&relat1, tmp_list1, info, 1, 0);
- 
-        //R6
-        create_rel_from_list(&relat6, &temp_lists[0], info, 6, 0);
- 		printf("R6: %d - R1:%d - NEW_R1: %d\n", temp_lists[0].counter, temp_lists[1].counter, tmp_list1->counter);
-        printf("R6: %d - R1:%d - NEW_R1: %d\n", relat6.num_tuples, old_relat1.num_tuples, relat1.num_tuples);
-   int count=0;
-        for(int i = 0; i < relat1.num_tuples; i ++){
-            for(int j = 0; j < old_relat1.num_tuples; j++){
-                if(relat1.tuples[i].key == old_relat1.tuples[j].key){
-                	count++;
-                    insert_inter(relat6.tuples[old_relat1.tuples[j].payload].key, &result_lists[0]);
-                }
-            }
+        for(int r=0 ; r<4 ; r++){
+        	if(r==index_2 || r==index_1 || temp_lists[r].start_list==NULL){continue;}
+printf("============================== %d\n",r);
+
+			create_rel_from_list_1(&old_relat1, &temp_lists[index_1], info, 1, 0);
+// create_rel_from_list(&old_relat1, &temp_lists[index_1], info, 1, 0);
+			create_rel_from_list(&relat1, tmp_list1, info, 1, 0);
+
+
+        	  //       create_rel_from_list_1(&old_relat1, &temp_lists[1], info, 1, 0);
+        	  //       create_rel_from_list(&relat1, tmp_list1, info, 1, 0);
+        	 
+        	        //R6
+        	        create_rel_from_list(&relat6, &temp_lists[r], info, 6, 0);
+        	 		printf("R6: %d - R1:%d - NEW_R1: %d\n", temp_lists[r].counter, temp_lists[index_1].counter, tmp_list1->counter);
+        	        printf("R6: %d - R1:%d - NEW_R1: %d\n", relat6.num_tuples, old_relat1.num_tuples, relat1.num_tuples);
+        	    int count=0;
+        	        for(int i = 0; i < relat1.num_tuples; i ++){
+        	            for(int j = 0; j < old_relat1.num_tuples; j++){
+        	                if(relat1.tuples[i].key == old_relat1.tuples[j].key){
+        	                	count++;
+        	                    insert_inter(relat6.tuples[old_relat1.tuples[j].payload].key, &result_lists[r]);
+        	                    // insert_inter(relat6.tuples[j].key, &result_lists[r]);
+        	                }
+        	            }
+        	        }
+        	        printf("%d \n",count);
+
+        
         }
-        printf("%d \n",count);
-		copy_result(&result_lists[index_1], tmp_list1);
-		copy_result(&result_lists[index_2], tmp_list2);
-
-
+        copy_result(&result_lists[index_1], tmp_list1);
+        copy_result(&result_lists[index_2], tmp_list2);
 		printf("\ncombined_result counter %d\n", (combined_result->counter)/2);
 		for (int i = 0; i < 4; ++i){
 			if( result_lists[i].start_list!=NULL){
@@ -439,118 +329,5 @@ void create_interlist(struct result *result, struct result* list1, struct result
 			temp = current_node -> buffer_start;
 		}
 	}	
-
-}
-
-void calculate_sum(struct result* result, struct query_info *query, struct file_info *info, int rel_key, uint64_t column){
-    int i;
-    uint64_t sum = 0;
-    uint64_t *col_ptr; /*pointer to the column of the relation*/
-
-
-    struct node *current_node;
-	current_node = result -> start_list;
-	int * temp = current_node -> buffer_start;
-
-    col_ptr = info[rel_key].col_array[column];
-
-    for(i = 0; i < result -> list_size; i++){
-
-   		while((void*)temp < current_node->buffer){
-            sum = sum + *(col_ptr + *(temp));   	//////!!!!!!!			
-			temp = temp + 1;
-		}
-
-		if(current_node -> next != NULL){
-			current_node = current_node->next;
-			temp = current_node->buffer_start;
-		}   
-    }
-    printf("\t\t\t------------------SUM-------------------------\n");
-    printf("\t\t\t REL: %d, COLUMN: %lu SUM: %lu\n", rel_key, column, sum);
-    printf("\t\t\t----------------------------------------------\n");
-
-}
-
-void calculate_priority(struct priority *priority, struct query_info *query, struct file_info *info){
-	printf("___________________NEW CALCULATION_________________\n");
-	int i, j;
-
-	int rel1, rel2, col1;	///////////////////////
-	int id_rel1, id_rel2;
-
-	uint64_t num_tup1 = 0, num_tup2 = 0;
-	struct priority temp;
-
-	int num_pred;   //number of predicates in the query
-	int pred_type;  //type of predicate
-	int num_rel;    //number of relations in the query
-
-	num_rel = query->rel_count;
-	num_pred = query->pred_count;
-
-	for(i = 0; i < num_pred; i++){
-		priority[i].key = i;
-	}
-
-
-	/*for every predicate in the query find the priority value*/
-	for(i = 0; i < num_pred; i++){
-
-		// printf("$$$$$$$$$$$$$$$$> %d \n ", query->preds[i].flag);
-
-		// ?????? not sure ?
-		rel1 = query->preds[i].tuple_1.rel;
-
-		id_rel1 = query->rels[rel1];
-		num_tup1 = info[id_rel1].num_tup;
-
-		// printf("NUM_TUPLES: %llu\n", num_tup1);
-
-		// printf("############: => %d\n", id_rel1);
-
-		pred_type = query->preds[i].flag; 		
-		
-
-		if(pred_type == -1){ 
-			/*Two relations in the predeicate*/
-			rel2 = query->preds[i].tuple_2.rel;
-			id_rel2 = query->rels[rel2];
-			num_tup2 = info[id_rel2].num_tup;
-			printf("PREDICATE %d\n", i);
-			printf("     rel1: %d rel2: %d\n", id_rel1, id_rel2);
-
-
-			priority[i].value = num_tup1*num_tup2 ;
-		}else{
-
-			/*Only one relation in the predicate*/
-			priority[i].value = num_tup1;
-
-			printf("PREDICATE %d\n", i);
-			printf("     rel1: %d rel2: %d\n", id_rel1, id_rel2);			
-
-		}
-		id_rel1 = -1;
-		id_rel2 = -1;
-
-	}
-
-
-	for(i = 0; i < num_pred; i++){
-		for(j = 0; j < num_pred; j++){
-			if(priority[i].value < priority[j].value){
-				temp = priority[j];
-				priority[j] = priority[i];
-				priority[i] = temp;
-			}
-		}
-	}
-
-	/*Print priorities*/
-	for(i=0; i < num_pred; i++){
-		printf("Priorities: %d - value: %lu\n", priority[i].key, priority[i].value);
-	}
-
 
 }

@@ -81,8 +81,6 @@ void copy_result(result *dest, result *source);
 
 void update_interlists(result *result_lists, result *combined_result, result *tmp_list1, uint64_t index_1, result *tmp_list2, uint64_t index_2, struct file_info* info);
 
-void item_exists(struct result * result, int row, struct result * dest);
-
 void create_rel_from_list_1(struct relation* rel, struct result* result, struct file_info *info, int rel_id, uint64_t column);
 
 #endif /*utils.h*/

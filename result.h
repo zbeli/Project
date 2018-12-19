@@ -21,7 +21,7 @@ typedef struct result{
 	struct node *start_list; //pointer to the first node of the list 
 	int list_size;			 //the size of the list
 
-	int counter;             //number of elements in the list ///////
+	int counter;             //number of elements in the list
 }result;
 
 /*Initialization of the results list*/

@@ -12,14 +12,10 @@
 #define h1 12
 #define h2 8
 
-// #define h1 3
-// #define h2 2
-
 /*MAX number of relations in a predicate is 4!?*/
 result result_lists[4];
 
 result sum_result ;
-
 
 typedef struct relation relation;
 /*Type definition for tuple*/

@@ -1,211 +1,9 @@
 #include "utils.h"
-#include "result.h"
 
-#include <string.h>
-
-void create_col_array(struct file_info *info, uint64_t * data){
-
-	int i;
-
-	// printf("---------->>>>> info: %llu, \tdata: %llu\n", info->num_tup, *data);
-
-	info -> col_array = (uint64_t**)malloc((info -> num_col)*sizeof(uint64_t*));
-
-	for(i = 0; i < info -> num_col; i++){
-		info -> col_array[i] = (data + i*info->num_tup + 2);
-	}
-}
-
-void print_query_info(struct query_info* query){
-	printf("Sxeseis %d\n", query->rel_count);
-	for(int i=0 ; i<query->rel_count ; i++){
-		// printf("rel:%lu\n",query->rels[i]);
-	}
-	printf("--------------------\n");
-	printf("Predicates %d\n", query->pred_count);
-	for(int i=0 ; i<query->pred_count ; i++){
-		if(query->preds[i].value==-1){
-			// printf("rel1:%lu col1:%lu - operator:%c - rel2:%lu col2:%lu\n",query->preds[i].tuple_1.rel, query->preds[i].tuple_1.col, query->preds[i].op , query->preds[i].tuple_2.rel, query->preds[i].tuple_2.col);
-		}
-		else{
-			// printf("rel1:%lu col1:%lu - operator:%c - value:%d\n",query->preds[i].tuple_1.rel, query->preds[i].tuple_1.col, query->preds[i].op , query->preds[i].value);
-		}
-	}
-	printf("--------------------\n");
-	printf("Provoles %d\n", query->cols_count);
-	for(int i=0 ; i<query->cols_count ; i++){
-		// printf("rel:%lu col:%lu\n", query->cols_to_print[i].rel, query->cols_to_print[i].col);
-	}
-}
-
-void insert_pred(struct query_info* query, char* pred, int index){
-	char delimeter[2];
-	for(int i=0 ; i<strlen(pred) ; i++){
-		if(pred[i]=='=' || pred[i]=='<' || pred[i]=='>'){
-			delimeter[0] = pred[i];
-			delimeter[1] = '\0';
-		}
-	}
-	char *token;
-
-	token = strtok_r(pred, ".",&pred);
-	query->preds[index].tuple_1.rel = atoi(token);
-
-	token = strtok_r(pred, delimeter,&pred);
-	query->preds[index].tuple_1.col = atoi(token);
-
-	query->preds[index].op = delimeter[0];
-
-	char *tok;
-	token = strtok_r(pred, ".",&pred);
-	tok = strtok_r(pred, ".",&pred);
-
-	if(tok==NULL){
-		query->preds[index].flag = 0;
-		query->preds[index].value = atoi(token);
-	}
-	else{
-		query->preds[index].tuple_2.rel = atoi(token);
-		query->preds[index].tuple_2.col = atoi(tok);
-
-		query->preds[index].flag = -1;
-	}
-}
-
-
-result* comparison_query(struct file_info *info, uint64_t rel, uint64_t col, int value, char comp_op, result *results){
-	result_init(results);
-
-	int count=0;
-	for(int i=0 ; i<info[rel].num_tup ; i++){
-		if(comp_op=='='){
-			if(info[rel].col_array[col][i] == value){
-				//printf(" -> %d) %lu \n", i, info[rel].col_array[col][i]);
-				count++;
-				//insert_result(-1, info[rel].col_array[col][i], results);
-				insert_inter(i, results);			
-			}
-
-		}
-		else if(comp_op=='>'){
-			if(info[rel].col_array[col][i] > value){
-				//printf(" -> %d) %lu \n", i, info[rel].col_array[col][i]);
-				count++;
-				//insert_result(-1, info[rel].col_array[col][i], results);
-				insert_inter(i, results);		
-			}
-		}
-		else if(comp_op=='<'){
-			if(info[rel].col_array[col][i] < value){
-				//printf(" -> %d) %lu \n", i, info[rel].col_array[col][i]);
-				count++;
-				//insert_result(-1, info[rel].col_array[col][i], results);
-				insert_inter(i, results);					
-			}
-		}
-
-	}
-	// printf("COUNT:%d  NUM_TUP:%lu\n",count,info[rel].num_tup);
-}
-
-void print_sums(result *res, struct query_info *query){
-	struct node *current_node;
-	void * temp;
-
-	int index;
-	uint64_t sum;
-	for(int i = 0; i < query->cols_count ; i++){
-		/*for(index=0 ; index<query->cols_count ; index++){
-			if(query->cols_to_print[i].rel == query->rels[index]){
-				break;		// index keep the position of current relation in res
-			}//////////////////////////////////////////////////////////
-		}*/
-
-		sum = 0;
-		current_node = res[index].start_list;
-		temp = current_node->buffer_start;
-
-		for(int j=0 ; j<res[index].list_size ; j++){
-			while(temp < current_node->buffer){
-				sum += *(int*)temp;//////////////////////////////////////////
-				temp = temp + sizeof(int);
-			}
-			if(current_node->next != NULL){
-				current_node = current_node->next;
-				temp = current_node->buffer_start;
-			}
-		}
-
-		printf("rel:%lu col:%lu %lu\n", query->cols_to_print[i].rel, query->cols_to_print[i].col, sum);
-	}
-}
-
-void update_results(result *result_lists, result *tmp_list1, uint64_t index_1, result *tmp_list2, uint64_t index_2, result* res){
-	if(tmp_list2 == NULL){
-		printf("Update_Results FILTER\n");
-
-		result *combined_result;
-		//result_init(combined_result);
-
-		relation relR, relS;
-		if (result_lists[index_1].start_list!=NULL){
-			list_to_rel_with_indexes(&relR, &result_lists[index_1]);
-			list_to_rel_with_indexes(&relS, tmp_list1);
-
-/*for (int i = 0; i < relR.num_tuples; ++i){
-	printf("%d %d %d\n",i,relR.tuples[i].key,  relR.tuples[i].payload);									//	DEBUG
-}
-for (int i = 0; i < relS.num_tuples; ++i){
-	printf("%d %d %d\n",i,relS.tuples[i].key,  relS.tuples[i].payload);
-}*/
-
-			combined_result = RadixHashJoin(&relR, &relS);
-	printf("combined_result list_size %d\n",combined_result->list_size);
-
-			update_interlists(result_lists, combined_result, tmp_list1, index_1, NULL, -1);
-		}
-		else{
-			result_init(&result_lists[index_1]);
-			copy_result(&result_lists[index_1], tmp_list1);
-			return;
-		}
-	}
-	else if((tmp_list2 != NULL)){
-		printf("Update_Results JOIN\n");
-
-		result *combined_result;
-
-		if( result_lists[index_1].start_list==NULL && result_lists[index_2].start_list==NULL){
-			result_init(&result_lists[index_1]);
-			result_init(&result_lists[index_2]);
-			copy_result(&result_lists[index_2], tmp_list2);
-			copy_result(&result_lists[index_1], tmp_list1);
-		}
-		else if(result_lists[index_1].start_list!=NULL  && result_lists[index_2].start_list==NULL){
-/*			relation relR, relS;
-			list_to_rel_with_indexes(&relR, &result_lists[index_1]);
-printf("result index1 counter %d 	relR counter %d\n",result_lists[index_1].counter, relR.num_tuples);
-			list_to_rel_with_indexes(&relS, tmp_list1);
-printf("result index2 counter %d 	relS counter %d\n",tmp_list1->counter, relS.num_tuples);
-	calculate_sum(tmp_list1, &temp_q, info, 1, 0);
-			combined_result = RadixHashJoin(&relR, &relS);	
-	printf(" _______________combined_result list_size %d counter%d\n",combined_result->list_size, combined_result->counter);*/		
-			update_interlists(result_lists, res, tmp_list1, index_1,tmp_list2, index_2);
-/*			free_result(combined_result);
-						combined_result->start_list=NULL;
-			combined_result->list_size=0;
-			combined_result->counter=0;*/
-		}
-	}
-
-	printf("END update_results\n");
-}
-
-void update_interlists(result *result_lists, result *combined_result, result *tmp_list1, uint64_t index_1, result *tmp_list2, uint64_t index_2){
-	result temp_lists[4];
+void relation_similarity(relation *relR, relation * relS, result *result_lists, finfo *info, qinfo *query, int current_pred){
+    result temp_lists[4];
 	for (int i = 0; i < 4; ++i){
-		if( result_lists[i].start_list!=NULL){
-			printf("%d\n", i);
+		if( result_lists[i].start_list != NULL){
 			result_init(&temp_lists[i]);
 			copy_result(&temp_lists[i], &result_lists[i]);
 
@@ -215,7 +13,144 @@ void update_interlists(result *result_lists, result *combined_result, result *tm
 			result_lists[i].counter=0;
 
 			result_init(&result_lists[i]);
-			// print_result(&temp_lists[i]);
+		}
+		else{
+			temp_lists[i].start_list=NULL;
+		}
+	}
+
+
+	int index = query -> preds[current_pred].tuple_1.rel;
+	int index2 = query -> preds[current_pred].tuple_2.rel;
+	int rel_id = query -> rels[index];
+	uint64_t col1 = query -> preds[current_pred].tuple_1.col;
+	uint64_t col2 = query -> preds[current_pred].tuple_2.col;
+
+    if(temp_lists[index].start_list == NULL && temp_lists[index2].start_list != NULL){
+        result_init(&result_lists[index]);
+
+    }else if(temp_lists[index].start_list != NULL && temp_lists[index2].start_list == NULL){
+        result_init(&result_lists[index2]);
+
+    }else if(temp_lists[index].start_list == NULL && temp_lists[index2].start_list == NULL){
+        result_init(&result_lists[index]);
+        result_init(&result_lists[index2]);
+
+    }
+    relation relat_redev[3];
+
+    int z = 0;
+
+    for(int i = 0; i < relR -> num_tuples; i ++){
+        for(int j = 0; j < relS -> num_tuples; j++){
+        	if(relR -> tuples[i].payload == relS -> tuples[j].payload){
+        		insert_inter(relR -> tuples[i].key, &result_lists[index]);
+        		insert_inter(relS -> tuples[j].key, &result_lists[index2]);		//maybe reconsidering this
+        	}
+        }
+    }
+
+    for(int r = 0 ; r < 4 ; r++){    
+    	if(r == index || r == index2 ||  temp_lists[r].start_list == NULL){continue;}
+        list_to_rel_with_indexes(&relat_redev[z], &temp_lists[r]);
+
+        for(int i = 0; i < relR -> num_tuples; i ++){
+            for(int j = 0; j < relS -> num_tuples; j++){
+            	if(relR -> tuples[i].payload == relS -> tuples[j].payload){
+                    insert_inter(relat_redev[z].tuples[i].payload, &result_lists[r]);	//j
+            	}
+            }
+        }
+        free(relat_redev[z].tuples);
+        z++;
+    }
+}
+
+void update_existing_interlists(relation *relR, relation * relS, result *result_lists, finfo *info, qinfo *query, int current_pred){
+    result temp_lists[4];
+	for (int i = 0; i < 4; ++i){
+		if( result_lists[i].start_list != NULL){
+			result_init(&temp_lists[i]);
+			copy_result(&temp_lists[i], &result_lists[i]);
+
+			free_result(&result_lists[i]);
+			result_lists[i].start_list=NULL;
+			result_lists[i].list_size=0;
+			result_lists[i].counter=0;
+
+			result_init(&result_lists[i]);
+		}
+		else{
+			temp_lists[i].start_list=NULL;
+		}
+	}
+
+	int index_1 = query -> preds[current_pred].tuple_1.rel;
+	int index_2 = query -> preds[current_pred].tuple_2.rel;
+
+    relation relat_redev[2];
+
+    int z = 0;
+    for(int i = 0; i < relR -> num_tuples; i ++){
+        for(int j = 0; j < relS -> num_tuples; j++){
+        	if(relR -> tuples[i].payload == relS -> tuples[j].payload){
+        		insert_inter(relR -> tuples[i].key, &result_lists[index_1]);
+        		insert_inter(relS -> tuples[j].key, &result_lists[index_2]);
+        	}
+        }
+    }
+
+    for(int r = 0 ; r < 4 ; r++){ 
+    	if(r == index_1 || r == index_2 || temp_lists[r].start_list == NULL){continue;}
+        list_to_rel_with_indexes(&relat_redev[z], &temp_lists[r]);
+
+
+        for(int i = 0; i < relR -> num_tuples; i ++){
+            for(int j = 0; j < relS -> num_tuples; j++){
+            	if(relR -> tuples[i].payload == relS -> tuples[j].payload){
+                    insert_inter(relat_redev[z].tuples[i].payload, &result_lists[r]);	//j
+            	}
+            }
+        }
+        free(relat_redev[z].tuples);
+        z++;
+    }
+}
+
+
+void update_results_filter(result *result_lists, result *tmp_list1, int index, finfo * info, qinfo *query, int pred_index){
+	result *combined_result;
+	relation relR, relS;
+	if (result_lists[index].start_list != NULL){
+		list_to_rel_with_indexes(&relR, &result_lists[index]);
+		list_to_rel_with_indexes(&relS, tmp_list1);
+
+		combined_result = RadixHashJoin(&relR, &relS);
+
+		update_interlists_filter(result_lists, combined_result, tmp_list1, index, info, query, pred_index);
+        free(relR.tuples);
+        free(relS.tuples);        
+	}
+	else{
+		result_init(&result_lists[index]);
+		copy_result(&result_lists[index], tmp_list1);
+		return;
+	}
+}
+
+void update_interlists_filter(result *result_lists, result *combined_result, result *tmp_list1, int index, finfo *info, qinfo *temp_q, int pred_index){
+	result temp_lists[4];
+	for (int i = 0; i < 4; ++i){
+		if( result_lists[i].start_list!=NULL){
+			result_init(&temp_lists[i]);
+			copy_result(&temp_lists[i], &result_lists[i]);
+
+			free_result(&result_lists[i]);
+			result_lists[i].start_list=NULL;
+			result_lists[i].list_size=0;
+			result_lists[i].counter=0;
+
+			result_init(&result_lists[i]);
 		}
 		else{
 			temp_lists[i].start_list=NULL;
@@ -232,143 +167,137 @@ void update_interlists(result *result_lists, result *combined_result, result *tm
 	int row;
  	int buffer;		int offset;
 
-	if(tmp_list2==NULL){		//	filter
-
-		for (int i = 0; i < combined_result->list_size; ++i){   	
-			while((void*)temp < current_node->buffer){
-				for (int j = 0; j < 4; ++j){
-					if (temp_lists[j].start_list==NULL){
-						continue;	
-					}
-					int index = *temp;
-					buffer = index/BUFFER;		offset = index%BUFFER;
-
-					current_node_inner = temp_lists[j].start_list;
-					for(int k=0; k<buffer ; k++){
-						printf("PARADEIGMA ME POLLOUS BUFFER\n");
-						if(current_node_inner->next!=NULL){
-							current_node_inner =current_node_inner->next;
-						}
-					}
-					temp_inner = (current_node_inner->buffer_start)+offset*sizeof(int);	// ama alla3oume ta int kai auta 
-
-
-					row = *temp_inner;
-					insert_inter(row, &result_lists[j]);
-					//print_result(&result_lists[j]);
-
+	for (int i = 0; i < combined_result->list_size; ++i){   	
+		while((void*)temp < current_node->buffer){
+			for (int j = 0; j < 4; ++j){
+				if (temp_lists[j].start_list == NULL){
+					continue;	
 				}
-								//return;
-				// temp=temp+1;
-	    		 temp=temp+2;
-			}
-			if(current_node->next != NULL){
-				current_node = current_node->next;
-				temp = current_node->buffer_start;
-			}
-		}
-		printf("combined_result counter %d\n", (combined_result->counter)/2);
-		for (int i = 0; i < 4; ++i){
-			if( result_lists[i].start_list!=NULL){
-				printf("Result %d counter %d\n",i,result_lists[i].counter);
-			}
-		}
-	}
-	else{
-		result_init(&result_lists[index_2]);
-		int row_2;
-		current_node = tmp_list1-> start_list;
-		temp = current_node->buffer_start;
-		for (int i = 0; i < tmp_list1->list_size; ++i){   	
-			while((void*)temp < current_node->buffer){
-				for (int j = 0; j < 4; ++j){
-					if (temp_lists[j].start_list==NULL || j==index_2 || j==index_1){
-						continue;	
-					}
-					
-                    item_exists(tmp_list1, *temp, &result_lists[j]);
+				int index = *temp;
+				buffer = index / BUFFER;	
+				offset = index % BUFFER;
 
-					
-				}
-								//return;
-				// temp=temp+1;
-	    		 temp=temp+1;
-			}
-			if(current_node->next != NULL){
-				current_node = current_node->next;
-				temp = current_node->buffer_start;
-			}
-		}
+				current_node_inner = temp_lists[j].start_list;
 
-		copy_result(&result_lists[index_1], tmp_list1);
-		copy_result(&result_lists[index_2], tmp_list2);
-		// result_init(&result_lists[index_2]);
-		// int row_2;
-
-/*		current_node = combined_result-> start_list;
-		temp = current_node->buffer_start;
-		for (int i = 0; i < combined_result->list_size; ++i){   	
-			while((void*)temp < current_node->buffer){
-				//printf("%d\n",i );
-				int index = *(temp+1);
-				buffer = index/BUFFER;		offset = index%BUFFER;
-
-				current_node_inner = tmp_list2->start_list;
-				for(int k=0; k<buffer ; k++){
-					printf("PARADEIGMA ME POLLOUS BUFFER\n");
+				for(int k = 0; k < buffer ; k++){
 					if(current_node_inner->next!=NULL){
 						current_node_inner =current_node_inner->next;
 					}
 				}
-				temp_inner = (current_node_inner->buffer_start)+offset*sizeof(int);	// ama alla3oume ta int kai auta 
+				temp_inner = (current_node_inner->buffer_start) + offset*sizeof(int);	// ama alla3oume ta int kai auta 
 
-				row_2 = *temp_inner;
-				insert_inter(row_2, &result_lists[index_2]);
 
-				temp=temp+2;
-			}
-			if(current_node->next != NULL){
-				current_node = current_node->next;
-				temp = current_node->buffer_start;
-			}
-		}*/
+				row = *temp_inner;
+				insert_inter(row, &result_lists[j]);
 
-		printf("combined_result counter %d\n", (combined_result->counter)/2);
-		for (int i = 0; i < 4; ++i){
-			if( result_lists[i].start_list!=NULL){
-				printf("Result %d counter %d\n",i,result_lists[i].counter);
 			}
+    		temp = temp + 2;
 		}
-
-	}
-}
-
-void item_exists(struct result * result, int row, struct result * dest){
-	// printf("\t\t ITEM_EXISTS\n");
-	int i;
-	uint64_t *col_ptr;
-	int flag_exists = 0;
-	struct node *current_node;
-	current_node = result -> start_list;
-
-	int* temp = current_node->buffer_start;
-
-
-	for(i = 0; i < result -> list_size; i++){
-		while((void*)temp < current_node->buffer){
-
-			// if(*temp == row){
-				insert_inter(row, dest);			
-			// }
-			temp = temp + 1;    //keep searching
-		}
-		/*go to next node of the list*/
-		if(current_node -> next != NULL){
+		if(current_node->next != NULL){
 			current_node = current_node->next;
-			temp = current_node -> buffer_start;
+			temp = current_node->buffer_start;
 		}
 	}
+/*	for (int i = 0; i < 4; ++i){
+		if( result_lists[i].start_list!=NULL){
+			printf("FILTER Result %d counter: %d\n",i,result_lists[i].counter);
+		}
+	}*/
+	
 }
+
+
+void update_results(result *result_lists, result *tmp_list1, int index_1, result *tmp_list2, int index_2, result* res, struct file_info* info, struct query_info *temp_q, int pred_index){
+
+	result *combined_result;
+
+	if( result_lists[index_1].start_list == NULL && result_lists[index_2].start_list == NULL){
+		result_init(&result_lists[index_1]);
+		result_init(&result_lists[index_2]);
+		copy_result(&result_lists[index_2], tmp_list2);
+		copy_result(&result_lists[index_1], tmp_list1);
+	}
+	else if(result_lists[index_1].start_list != NULL  && result_lists[index_2].start_list == NULL){
+
+	    // result_init(&result_lists[index_2]); //testing
+		update_interlists(result_lists, res, tmp_list1, index_1,tmp_list2, index_2, info, temp_q, pred_index);
+	}
+	else if(result_lists[index_1].start_list == NULL  && result_lists[index_2].start_list != NULL){
+		update_interlists(result_lists, res, tmp_list2, index_2, tmp_list1, index_1, info, temp_q, pred_index);
+	}
+}
+
+void update_interlists(result *result_lists, result *combined_result, result *tmp_list1, int index_1, result *tmp_list2, int index_2, struct file_info* info, struct query_info *temp_q, int pred_index){
+	result temp_lists[4];
+	for (int i = 0; i < 4; ++i){
+		if( result_lists[i].start_list != NULL){
+			result_init(&temp_lists[i]);
+			copy_result(&temp_lists[i], &result_lists[i]);
+
+			free_result(&result_lists[i]);
+			result_lists[i].start_list=NULL;
+			result_lists[i].list_size=0;
+			result_lists[i].counter=0;
+
+			result_init(&result_lists[i]);
+		}
+		else{
+			temp_lists[i].start_list=NULL;
+		}
+	}
+	// if(result_lists[index_2].start_list == NULL)
+	    result_init(&result_lists[index_2]);
+
+    relation new_relat, old_relat, insert_relat;
+    relation relat_redev[2];
+
+	int relation_1 = temp_q->rels[index_1];
+	int relation_2 = temp_q->rels[index_2];
+    uint64_t column1_id = temp_q -> preds[pred_index].tuple_1.rel;
+    uint64_t column2_id = temp_q -> preds[pred_index].tuple_2.rel;
+
+	list_to_rel_with_indexes(&old_relat, &temp_lists[index_1]);
+
+	list_to_rel_with_indexes(&new_relat, tmp_list1);
+	list_to_rel_with_indexes(&insert_relat, tmp_list2);
+
+    int z = 0;
+    for(int r = 0 ; r < 4 ; r++){    
+    	if(r == index_2 || r == index_1 || temp_lists[r].start_list == NULL){continue;}
+
+        list_to_rel_with_indexes(&relat_redev[z], &temp_lists[r]);
+
+    	        for(int i = 0; i < new_relat.num_tuples; i ++){
+    	            for(int j = 0; j < old_relat.num_tuples; j++){
+    	            	if(new_relat.tuples[i].payload == old_relat.tuples[j].payload){
+    	                    insert_inter(relat_redev[z].tuples[j].payload, &result_lists[r]);
+    	                    if(z == 0){
+        	                    insert_inter(old_relat.tuples[j].payload, &result_lists[index_1]);
+        	                    insert_inter(insert_relat.tuples[i].payload, &result_lists[index_2]);
+    	                    }
+    	                }
+    	            }
+    	        }
+        free(relat_redev[z].tuples);
+            z++;
+    }
+    if(z == 0){
+        copy_result(&result_lists[index_1], tmp_list1);
+        copy_result(&result_lists[index_2], tmp_list2);
+    }
+    /*	for (int i = 0; i < 4; ++i){
+		if( result_lists[i].start_list != NULL){
+			printf("Result %d counter %d\n",i,result_lists[i].counter);}}
+*/	
+   	free(new_relat.tuples);
+	free(old_relat.tuples);
+	free(insert_relat.tuples);
+
+	for (int i = 0; i < 4; ++i)
+	    if(temp_lists[i].start_list != NULL)
+			free_result(&temp_lists[i]);
+
+}/*End of update_interlists*/
 
 void copy_result(result *dest, result *source){
 	int i, j;
@@ -391,31 +320,149 @@ void copy_result(result *dest, result *source){
     }	
 }
 
+void updateDifferCol(relation *relR, relation *relS, result * result_lists, finfo *info, qinfo *query, int current_pred){
+    result temp_lists[4];
+	for (int i = 0; i < 4; ++i){
+		if( result_lists[i].start_list != NULL){
+			result_init(&temp_lists[i]);
+			copy_result(&temp_lists[i], &result_lists[i]);
+
+			free_result(&result_lists[i]);
+			result_lists[i].start_list=NULL;
+			result_lists[i].list_size=0;
+			result_lists[i].counter=0;
+
+			result_init(&result_lists[i]);
+		}
+		else{
+			temp_lists[i].start_list=NULL;
+		}
+	}
+	int index_1 = query -> preds[current_pred].tuple_1.rel;
+	int index_2 = query -> preds[current_pred].tuple_2.rel;
+    relation relat_redev[2];    
+    int z = 0;
+
+    for(int i = 0; i < relR -> num_tuples; i ++){
+    	if(relR -> tuples[i].payload == relS -> tuples[i].payload){
+
+    		insert_inter(relR -> tuples[i].key, &result_lists[index_1]);
+    		insert_inter(relS -> tuples[i].key, &result_lists[index_2]);
+    	}  
+    }
+
+    for(int r = 0 ; r < 4 ; r++){    
+    	if(r == index_1 || r == index_2 || temp_lists[r].start_list == NULL){continue;}
+
+        list_to_rel_with_indexes(&relat_redev[z], &temp_lists[r]);
+
+        for(int j = 0; j < relS -> num_tuples; j++){
+        	if(relR -> tuples[j].payload == relS -> tuples[j].payload){
+                insert_inter(relat_redev[z].tuples[j].payload, &result_lists[r]);
+        	}
+        }
+        free(relat_redev[z].tuples);
+        z++;
+    }
+}
 void create_relation(struct relation* rel, struct file_info *info, int rel_id, uint64_t column){
 	/*Create relation from file*/
-	// printf("Create relation from file!\n");
 	int i,j;
 	uint64_t *col_ptr; /*pointer to the column of the relation*/
 
     rel->num_tuples = info[rel_id].num_tup;
     col_ptr = info[rel_id].col_array[column];
-
-    printf("REL: %d COL: %lu rows: %d \n", rel_id, column, rel->num_tuples);
     
     rel->tuples = (struct tuple*)malloc(rel->num_tuples*sizeof(struct tuple));
 
     for (i = 0; i < rel -> num_tuples; i++){
     	rel -> tuples[i].key = i;
-    	// printf("%llu ", *(col_ptr+i));
     	rel -> tuples[i].payload = *(col_ptr+i);
-    	// printf("%llu ", rel->tuples[i].payload);
     }
+}
+
+void create_rel_from_list_distinct(struct relation* rel, struct result* result, struct file_info *info, int rel_id, uint64_t column){
+	int i, j;
+	uint64_t *col_ptr;
+	struct node *current_node;
+	current_node = result -> start_list;
+	int * temp = current_node->buffer_start;
+
+	relation *t_rel;
+	t_rel = (relation*)malloc(sizeof(relation));
+	t_rel -> num_tuples = 0;
+    col_ptr = info[rel_id].col_array[column];
+
+	t_rel -> tuples = (struct tuple*)malloc((result->counter)*sizeof(struct tuple));
+    j = 0;
+    int flag=0;
+    int counter=0;
+	for(i = 0; i < result -> list_size; i++){
+    
+    	while((void*)temp < current_node->buffer){
+
+    		for(int k = 0; k < j; k++){	
+    			if(t_rel -> tuples[k].key == *temp){
+    				flag = 1;
+    				break;
+    			}
+    		}
+    		if(flag ==0 ){
+    			counter++;
+    		}
+			t_rel -> tuples[j].key = *temp;
+    		t_rel -> tuples[j].payload = *(col_ptr + *(temp));
+    		t_rel -> num_tuples++;
+
+    		j++;
+    		flag=0;
+            temp = temp + 1;
+
+		}
+		if(current_node->next != NULL){
+			current_node = current_node->next;
+			temp = current_node->buffer_start;
+		}
+    }
+
+    rel->num_tuples = 0;
+    rel->tuples = (struct tuple*)malloc(counter*sizeof(struct tuple));
+    int index=0;
+    int flag2=0;
+    for(int k = 0; k < j; k++){
+		if(k == 0){    	
+			rel->tuples[index].key = t_rel -> tuples[k].key;
+    		rel->tuples[index].payload = t_rel -> tuples[k].payload;
+    		rel-> num_tuples++;
+    		index++;
+    		continue;
+    	}
+    	for(int r=0 ; r<index ;r++){
+    		if(t_rel -> tuples[k].key == rel->tuples[r].key){
+    			flag2=1;
+    		}
+    	}
+    	if(flag2==1){
+    		flag2=0;
+    		continue;
+    	}
+    	else{
+    		rel->tuples[index].key = t_rel -> tuples[k].key;
+    		rel->tuples[index].payload = t_rel -> tuples[k].payload;
+    		rel-> num_tuples++;
+    		index++;
+    	}
+
+    }
+
+    free(t_rel->tuples);
+    free(t_rel);
 }
 
 void create_rel_from_list(struct relation* rel, struct result* result, struct file_info *info, int rel_id, uint64_t column){
 
 	int i, j;
-	uint64_t *col_ptr; /*pointer to the column of the relation*/
+	uint64_t *col_ptr;
 	struct node *current_node;
 	current_node = result -> start_list;
 	int * temp = current_node->buffer_start;
@@ -429,7 +476,7 @@ void create_rel_from_list(struct relation* rel, struct result* result, struct fi
     
     	while((void*)temp < current_node->buffer){
 
-		    rel -> tuples[j].key = *temp;   					//!!!!!!!!!!!!!!!!!!!!!??
+		    rel -> tuples[j].key = *temp;
 	    	rel -> tuples[j].payload = *(col_ptr + *(temp));
             temp = temp + 1;
 	    	j++;
@@ -452,13 +499,13 @@ void list_to_rel_with_indexes(struct relation* rel, struct result* result){
 
 	rel -> num_tuples = result -> counter;
 
-	rel -> tuples = (struct tuple*)malloc(rel->num_tuples*sizeof(struct tuple));
+	rel -> tuples = (struct tuple*)malloc(rel -> num_tuples * sizeof(struct tuple));
     j = 0;
 	for(i = 0; i < result -> list_size; i++){
     
     	while((void*)temp < current_node->buffer){
 
-		    rel -> tuples[j].key = j;   					//!!!!!!!!!!!!!!!!!!!!!??
+		    rel -> tuples[j].key = j;
 	    	rel -> tuples[j].payload = *temp;
             temp = temp + 1;
 	    	j++;
@@ -472,22 +519,61 @@ void list_to_rel_with_indexes(struct relation* rel, struct result* result){
 
 }
 
-// void create_interlist(struct result *result, struct result* list1, struct result* list2, int rel1, int rel2, struct file_info* info){
-void create_interlist(struct result *result, struct result* list1, struct result* list2, struct query_info * query, struct file_info* info, int pred_id){
+void list_to_rel_with_indexes_1(struct relation* rel, struct result* result){
 
-	// printf("\t\t ----------------CREATE INTERLIST------------------\n");
+	int i, j;
+	struct node *current_node;
+	current_node = result -> start_list;
+	int * temp = current_node->buffer_start;
+    relation *t_rel;
+    t_rel = (relation*)malloc(sizeof(relation));
+	t_rel -> num_tuples = result -> counter;
+
+	t_rel -> tuples = (struct tuple*)malloc(t_rel->num_tuples*sizeof(struct tuple));
+    j = 0;
+    int flag=0;
+    int ee=0;
+	for(i = 0; i < result -> list_size; i++){
+    
+    	while((void*)temp < current_node->buffer){
+    		for(int k = 0; k < ee; k++){
+    			if(t_rel -> tuples[k].payload == *temp){
+    				flag = 1;
+    				break;
+    			}
+    		}
+		    if(flag == 0){
+		    	t_rel -> tuples[j].key = j;
+		        t_rel -> tuples[j].payload = *temp;
+		
+		   		j++;    	
+		   	}
+		   	ee++;
+		   	flag=0;
+	    	temp = temp + 1;
+		}
+
+		if(current_node->next != NULL){
+			current_node = current_node->next;
+			temp = current_node->buffer_start;
+		}
+    }
+    rel->num_tuples = 0;
+    rel->tuples = (struct tuple*)malloc(t_rel -> num_tuples * sizeof(struct tuple));
+    for(int k=0; k<t_rel->num_tuples; k++){
+    	rel->tuples[k].key = t_rel -> tuples[k].key;
+    	rel->tuples[k].payload = t_rel -> tuples[k].payload;
+    	rel-> num_tuples++;
+    }
+}
+
+void create_interlist(struct result *result, struct result* list1, struct result* list2, struct file_info* info){
+
 	int i;
 	struct node *current_node;
 	current_node = result -> start_list;
 	int row_1, row_2;
 	int* temp = current_node -> buffer_start;
-
-	int rel1 = query->rels[query -> preds[pred_id].tuple_1.rel];
-	uint64_t col1 = query -> preds[pred_id].tuple_1.col;
-	int rel2 = query->rels[query -> preds[pred_id].tuple_2.rel];
-	uint64_t col2 = query -> preds[pred_id].tuple_2.col;
-
-	int j = 0; //debug
 
 	for(i = 0; i < result -> list_size; i++){
 
@@ -495,9 +581,6 @@ void create_interlist(struct result *result, struct result* list1, struct result
 			row_1 = *(int*)temp;
 			row_2 = *(int*)(temp+1);
 			temp = temp + 2;
-			/*Check if the values exist in the respective lists*/
-			// item_exists(list1, row_1, info, rel1, col1);
-			// item_exists(list2, row_2, info, rel2, col2);
 
 			insert_inter(row_1, list1);
 			insert_inter(row_2, list2);
@@ -511,115 +594,4 @@ void create_interlist(struct result *result, struct result* list1, struct result
 
 }
 
-void calculate_sum(struct result* result, struct query_info *query, struct file_info *info, int rel_key, uint64_t column){
-    int i;
-    uint64_t sum = 0;
-    uint64_t *col_ptr; /*pointer to the column of the relation*/
 
-
-    struct node *current_node;
-	current_node = result -> start_list;
-	int * temp = current_node -> buffer_start;
-
-    col_ptr = info[rel_key].col_array[column];
-
-    for(i = 0; i < result -> list_size; i++){
-
-   		while((void*)temp < current_node->buffer){
-            sum = sum + *(col_ptr + *(temp));   	//////!!!!!!!			
-			temp = temp + 1;
-		}
-
-		if(current_node -> next != NULL){
-			current_node = current_node->next;
-			temp = current_node->buffer_start;
-		}   
-    }
-    printf("\t\t\t------------------SUM-------------------------\n");
-    printf("\t\t\t REL: %d, COLUMN: %lu SUM: %lu\n", rel_key, column, sum);
-    printf("\t\t\t----------------------------------------------\n");
-
-}
-
-void calculate_priority(struct priority *priority, struct query_info *query, struct file_info *info){
-	printf("___________________NEW CALCULATION_________________\n");
-	int i, j;
-
-	int rel1, rel2, col1;	///////////////////////
-	int id_rel1, id_rel2;
-
-	uint64_t num_tup1 = 0, num_tup2 = 0;
-	struct priority temp;
-
-	int num_pred;   //number of predicates in the query
-	int pred_type;  //type of predicate
-	int num_rel;    //number of relations in the query
-
-	num_rel = query->rel_count;
-	num_pred = query->pred_count;
-
-	for(i = 0; i < num_pred; i++){
-		priority[i].key = i;
-	}
-
-
-	/*for every predicate in the query find the priority value*/
-	for(i = 0; i < num_pred; i++){
-
-		// printf("$$$$$$$$$$$$$$$$> %d \n ", query->preds[i].flag);
-
-		// ?????? not sure ?
-		rel1 = query->preds[i].tuple_1.rel;
-
-		id_rel1 = query->rels[rel1];
-		num_tup1 = info[id_rel1].num_tup;
-
-		// printf("NUM_TUPLES: %llu\n", num_tup1);
-
-		// printf("############: => %d\n", id_rel1);
-
-		pred_type = query->preds[i].flag; 		
-		
-
-		if(pred_type == -1){ 
-			/*Two relations in the predeicate*/
-			rel2 = query->preds[i].tuple_2.rel;
-			id_rel2 = query->rels[rel2];
-			num_tup2 = info[id_rel2].num_tup;
-			printf("PREDICATE %d\n", i);
-			printf("     rel1: %d rel2: %d\n", id_rel1, id_rel2);
-
-
-			priority[i].value = num_tup1*num_tup2 ;
-		}else{
-
-			/*Only one relation in the predicate*/
-			priority[i].value = num_tup1;
-
-			printf("PREDICATE %d\n", i);
-			printf("     rel1: %d rel2: %d\n", id_rel1, id_rel2);			
-
-		}
-		id_rel1 = -1;
-		id_rel2 = -1;
-
-	}
-
-
-	for(i = 0; i < num_pred; i++){
-		for(j = 0; j < num_pred; j++){
-			if(priority[i].value < priority[j].value){
-				temp = priority[j];
-				priority[j] = priority[i];
-				priority[i] = temp;
-			}
-		}
-	}
-
-	/*Print priorities*/
-	for(i=0; i < num_pred; i++){
-		printf("Priorities: %d - value: %lu\n", priority[i].key, priority[i].value);
-	}
-
-
-}

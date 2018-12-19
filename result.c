@@ -132,7 +132,7 @@ void free_result(result* res){
     	free(cur_node->buffer_start);
     	cur_node->buffer_start = NULL;
     	free(cur_node);
-    	cur_node =NULL;
+    	cur_node = NULL;
     	cur_node = next_n;
     }
 }

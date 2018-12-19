@@ -135,7 +135,6 @@ void calculate_query(struct query_info *temp_q,  struct file_info* info){
             comparison_query(info, rel_1, col_1, pred.value, pred.op , &tmp_list1);
 
             update_results_filter(result_lists, &tmp_list1, pred.tuple_1.rel, info, temp_q, current_pred);
-
 			free_result(&tmp_list1);
             tmp_list1.start_list=NULL;
             tmp_list1.list_size=0;
@@ -188,6 +187,7 @@ result* comparison_query(struct file_info *info, int rel, uint64_t col, int valu
 	int count=0;
 	for(int i = 0 ; i < info[rel].num_tup ; i++){
 		if(comp_op == '='){
+
 			if(info[rel].col_array[col][i] == value){
 				count++;
 				insert_inter(i, results);			
@@ -237,7 +237,6 @@ int calculate_priority(struct priority *prior, qinfo *query, finfo *info, int in
 		}
 
 		pred_type = query -> preds[current_pred].flag; 		
-		
 
 		if(pred_type == -1){ 
 			/*Two relations in the predeicate*/
@@ -300,7 +299,6 @@ void calculate_sum(struct result* result, struct query_info *query, struct file_
 			temp = current_node->buffer_start;
 		}   
     }
-
     
     if(sum == 0){
         printf("NULL");

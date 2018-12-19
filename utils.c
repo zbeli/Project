@@ -135,6 +135,7 @@ void update_results_filter(result *result_lists, result *tmp_list1, int index, f
 		result_init(&result_lists[index]);
 		copy_result(&result_lists[index], tmp_list1);
 		return;
+
 	}
 }
 
@@ -189,7 +190,6 @@ void update_interlists_filter(result *result_lists, result *combined_result, res
 
 				row = *temp_inner;
 				insert_inter(row, &result_lists[j]);
-
 			}
     		temp = temp + 2;
 		}
@@ -299,6 +299,7 @@ void update_interlists(result *result_lists, result *combined_result, result *tm
 
 }/*End of update_interlists*/
 
+
 void copy_result(result *dest, result *source){
 	int i, j;
 	struct node *current_node;
@@ -380,8 +381,8 @@ void create_relation(struct relation* rel, struct file_info *info, int rel_id, u
     	rel -> tuples[i].payload = *(col_ptr+i);
     }
 }
-
 void create_rel_from_list_distinct(struct relation* rel, struct result* result, struct file_info *info, int rel_id, uint64_t column){
+
 	int i, j;
 	uint64_t *col_ptr;
 	struct node *current_node;
@@ -400,7 +401,6 @@ void create_rel_from_list_distinct(struct relation* rel, struct result* result, 
 	for(i = 0; i < result -> list_size; i++){
     
     	while((void*)temp < current_node->buffer){
-
     		for(int k = 0; k < j; k++){	
     			if(t_rel -> tuples[k].key == *temp){
     				flag = 1;
@@ -409,6 +409,7 @@ void create_rel_from_list_distinct(struct relation* rel, struct result* result, 
     		}
     		if(flag ==0 ){
     			counter++;
+
     		}
 			t_rel -> tuples[j].key = *temp;
     		t_rel -> tuples[j].payload = *(col_ptr + *(temp));
@@ -593,5 +594,6 @@ void create_interlist(struct result *result, struct result* list1, struct result
 	}	
 
 }
+
 
 

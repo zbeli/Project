@@ -279,6 +279,7 @@ int main(int argc, char **argv){
 	double time_spent = (double)(end - begin) / CLOCKS_PER_SEC;
 	printf("\nTIME: %lf\n", time_spent);
 
+
 	/*Free*/
 
 	for(int i = 0; i < 4; i++){

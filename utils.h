@@ -61,6 +61,7 @@ void update_results(result *result_lists, result *tmp_list1, int index_1,
 
 void create_relation(struct relation* rel, struct file_info *info, int rel_id, uint64_t column);
 
+
 void create_rel_from_list(struct relation* rel, struct result* result, struct file_info *info, int rel_id, uint64_t column);
 
 void create_interlist(struct result *result, struct result* list1, struct result* list2, struct file_info* info);
@@ -85,6 +86,7 @@ void update_existing_interlists(relation *rel_R, relation * rel_S, result *resul
 void relation_similarity(relation *relR, relation * relS, result *result_lists, finfo *info, qinfo *query, int current_pred);
 
 void updateDifferCol(relation *relR, relation *relS, result * result_lists, finfo *info, qinfo *query, int current_pred);
+
 
 
 #endif /*utils.h*/

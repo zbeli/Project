@@ -22,5 +22,4 @@ void print_sum(struct result* result, struct query_info *query, struct file_info
 /*Check if the same predicate exists in the query*/
 int predicate_exists(qinfo * query, int num_pred, int current_pred);
 
-
 #endif /*query.h*/

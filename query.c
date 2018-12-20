@@ -144,6 +144,16 @@ void calculate_query(struct query_info *temp_q,  struct file_info* info){
 	}/*For every predicate*/
 
     print_sum(result_lists, temp_q, info); /*Calculate sum*/
+		
+	/*Free result lists*/
+	for(int i = 0; i < 4; i++){
+	    if(result_lists[i].start_list != NULL){
+	    	free_result(&result_lists[i]);
+	    	result_lists[i].start_list = NULL;
+	    	result_lists[i].list_size = 1;
+	    	result_lists[i].counter =0 ;
+	    }
+	}
 
 }/*End of Calculate Query*/
 

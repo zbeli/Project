@@ -272,6 +272,7 @@ int main(int argc, char **argv){
 		columns_to_print_count=1;
 		pred_count=1;
 
+
 	}
 	fclose(work_fp);
 
@@ -281,12 +282,6 @@ int main(int argc, char **argv){
 
 
 	/*Free*/
-
-	for(int i = 0; i < 4; i++){
-	    if(result_lists[i].start_list != NULL){
-	    	free_result(&result_lists[i]);
-	    }
-	}
 	free(data);
 	for(i = 0; i < num_of_files; i++){
 		free(info[i].col_array);

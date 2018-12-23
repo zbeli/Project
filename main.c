@@ -115,6 +115,7 @@ int main(int argc, char **argv){
 		// printf("\n%s\tTuples: %lu\t -Columns: %lu\n", files[i], info[i].num_tup, info[i].num_col);
 		// printf("%s\tTuples: %llu\t -Columns: %llu\n", files[i], info[i].num_tup, info[i].num_col);
 
+
 		fclose(bin_file);
 	}
 

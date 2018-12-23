@@ -87,7 +87,5 @@ void relation_similarity(relation *relR, relation * relS, result *result_lists, 
 
 void updateDifferCol(relation *relR, relation *relS, result * result_lists, finfo *info, qinfo *query, int current_pred);
 
-
-
 #endif /*utils.h*/
 

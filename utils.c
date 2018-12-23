@@ -595,5 +595,3 @@ void create_interlist(struct result *result, struct result* list1, struct result
 
 }
 
-
-

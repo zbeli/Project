@@ -1,7 +1,6 @@
 #include "query.h"
 
 void calculate_query(struct query_info *temp_q,  struct file_info* info){
-
 	int i;
 	int num_rel = temp_q->rel_count; //number of relations in the query
 	int num_pred = temp_q->pred_count; //number of predicates in the query
@@ -23,23 +22,24 @@ void calculate_query(struct query_info *temp_q,  struct file_info* info){
 		result_lists[i].start_list = NULL;
 	}
 
-	struct predicate pred; // current predicate in loop
+	struct predicate pred;  //current predicate in loop
 	struct relation rel_R;
 	struct relation rel_S;
 
 	result* res;
-    int current_pred = -1;    //current predicate in every loop! 
+    int current_pred = -1;    //key of current predicate in every loop! 
     int flag_exists = 0;
 
 	/*For every predicate*/
 	for(i = 0; i < num_pred; i++){
-		// printf("\t\t\t...Predicate: %d/%d...", i+1, num_pred);
 
 	    if(i != num_pred - 1){
 	    	current_pred = calculate_priority(prior, temp_q, info, i);
 	    }else if(i == num_pred - 1){
             current_pred = prior[0].key;
 	    }
+	    // printf("\t\t\t...Predicate: %d/%d...(%d)\n", i+1, num_pred, current_pred);  //debug
+
         //check if the same predicate exists
         if(predicate_exists(temp_q, num_pred, current_pred) == 1){
         	if(flag_exists == 1)
@@ -56,12 +56,12 @@ void calculate_query(struct query_info *temp_q,  struct file_info* info){
 
 		/*Two relations in the current predicate*/
 		if(pred.flag == -1){
-					/*check if list of relation 1 exists*/
 			if(result_lists[pred.tuple_1.rel].start_list == NULL){
 				create_relation(&rel_R, info, rel_1, col_1);
 			}else{
 				/*Create relation from list*/
-				create_rel_from_list_distinct(&rel_R, &(result_lists[pred.tuple_1.rel]), info, rel_1, col_1);
+
+                list_to_relation(&rel_R, &(result_lists[pred.tuple_1.rel]), info, rel_1, col_1);	
 			}
 			rel_2 = temp_q->rels[pred.tuple_2.rel];
 			col_2 = pred.tuple_2.col;
@@ -71,20 +71,31 @@ void calculate_query(struct query_info *temp_q,  struct file_info* info){
     	    	create_relation(&rel_S, info, rel_2, col_2);
 			}else{
 				/*Create relation from list*/
-                create_rel_from_list(&rel_S, &(result_lists[pred.tuple_2.rel]), info, rel_2, col_2);
+                // create_rel_from_list(&rel_S, &(result_lists[pred.tuple_2.rel]), info, rel_2, col_2);			
+                // printf("tell me about it!!!\n");	//debug	
+                list_to_relation(&rel_S, &(result_lists[pred.tuple_2.rel]), info, rel_2, col_2);
 			}
 
 			if(result_lists[pred.tuple_1.rel].start_list != NULL && result_lists[pred.tuple_2.rel].start_list != NULL){
+				// printf("$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$\n");
                 if(predicate_exists(temp_q, num_pred, current_pred) == 2){
                     free(rel_R.tuples);
+                    free(rel_S.tuples);
+
 			        create_rel_from_list(&rel_R, &(result_lists[pred.tuple_1.rel]), info, rel_1, col_1); //maybe avoid that?
+                    create_rel_from_list(&rel_S, &(result_lists[pred.tuple_2.rel]), info, rel_2, col_2);				
+
                 	updateDifferCol(&rel_R, &rel_S, result_lists, info, temp_q, current_pred);
                     free(rel_R.tuples);
 		            free(rel_S.tuples);
                 	continue;
                 }
                 free(rel_R.tuples);
+
+                printf("\t\t query.c SOS 2\n"); //debug
+
 			    create_rel_from_list(&rel_R, &(result_lists[pred.tuple_1.rel]), info, rel_1, col_1);
+          
                 update_existing_interlists(&rel_R, &rel_S, result_lists, info, temp_q, current_pred);
                 free(rel_R.tuples);
 	            free(rel_S.tuples);               
@@ -92,17 +103,18 @@ void calculate_query(struct query_info *temp_q,  struct file_info* info){
 
 			}
 			// same relation in the predicate
-			if(rel_1 == rel_2){ 
-				if(result_lists[pred.tuple_1.rel].start_list != NULL){
-					free(rel_R.tuples);
-			        create_rel_from_list(&rel_R, &(result_lists[pred.tuple_1.rel]), info, rel_1, col_1);
-				}
 
-				relation_similarity(&rel_R, &rel_S, result_lists, info, temp_q, current_pred);
-                free(rel_R.tuples);
-	            free(rel_S.tuples);				
-				continue;
-			}
+			// if(rel_1 == rel_2){ 
+			// 	if(result_lists[pred.tuple_1.rel].start_list != NULL){
+			// 		free(rel_R.tuples);
+			//         create_rel_from_list(&rel_R, &(result_lists[pred.tuple_1.rel]), info, rel_1, col_1);
+			// 	}
+
+			// 	relation_similarity(&rel_R, &rel_S, result_lists, info, temp_q, current_pred);
+   //              free(rel_R.tuples);
+	  //           free(rel_S.tuples);				
+			// 	continue;
+			// }
 
 			res = RadixHashJoin(&rel_R, &rel_S);
 			result_init(&tmp_list1);
@@ -140,7 +152,6 @@ void calculate_query(struct query_info *temp_q,  struct file_info* info){
             tmp_list1.list_size=0;
             tmp_list1.counter=0;	
 		}
-
 	}/*For every predicate*/
 
     print_sum(result_lists, temp_q, info); /*Calculate sum*/
@@ -249,7 +260,7 @@ int calculate_priority(struct priority *prior, qinfo *query, finfo *info, int in
 		pred_type = query -> preds[current_pred].flag; 		
 
 		if(pred_type == -1){ 
-			/*Two relations in the predeicate*/
+			/*Two relations in the predicate*/
 			rel2 = query -> preds[current_pred].tuple_2.rel;
 			id_rel2 = query -> rels[rel2];
 			if(result_lists[rel2].start_list == NULL){
@@ -271,8 +282,31 @@ int calculate_priority(struct priority *prior, qinfo *query, finfo *info, int in
     uint64_t min = prior[num_pred - index - 1].value;
     int pos_min = num_pred - index - 1;               //position of min
 
-	for(i = 0; i < num_pred - index -1; i++){
+    //no cross products please!!!
+    for(i = 0; i <= num_pred - index - 1; i++){
+	    int pred = prior[i].key;
+    	int rel1 = query -> preds[pred].tuple_1.rel;
+    	int rel2 = query -> preds[pred].tuple_2.rel;
+
+    	if(result_lists[rel1].start_list == NULL && result_lists[rel2].start_list == NULL){
+    		continue;}
+
+    	min = prior[i].value;
+        pos_min = i;               
+    }
+    //no cross products please!!!
+
+	for(i = 0; i <= num_pred - index - 1; i++){
         if(prior[i].value < min){
+        	//no cross products please!!!
+        	int pred = prior[i].key;
+        	int rel1 = query -> preds[pred].tuple_1.rel;
+        	int rel2 = query -> preds[pred].tuple_2.rel;
+
+        	if(result_lists[rel1].start_list == NULL && result_lists[rel2].start_list == NULL){
+        	// if(index != 0 && result_lists[rel1].start_list == NULL && result_lists[rel2].start_list == NULL){
+        		continue;}
+        	//no cross products please!!!
             min = prior[i].value;
             pos_min = i;
         }    

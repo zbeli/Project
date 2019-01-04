@@ -56,7 +56,6 @@ void insert_result(int rowR, int rowS ,result* result){
 
 }
 
-/////////////////////////////////////////////////////////////////////
 void insert_inter(int row, result* result){
 	int i;
 	int * ptr;

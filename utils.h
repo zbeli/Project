@@ -64,6 +64,7 @@ void create_relation(struct relation* rel, struct file_info *info, int rel_id, u
 
 void create_rel_from_list(struct relation* rel, struct result* result, struct file_info *info, int rel_id, uint64_t column);
 
+/*Creation of  the two lists from the result of RHJ*/
 void create_interlist(struct result *result, struct result* list1, struct result* list2, struct file_info* info);
 
 void list_to_rel_with_indexes(struct relation* rel, struct result* result);
@@ -74,20 +75,25 @@ void update_interlists(result *result_lists, result *combined_result, result *tm
 
 void create_rel_from_list_distinct(struct relation* rel, struct result* result, struct file_info *info, int rel_id, uint64_t column);
 
-void list_to_rel_with_indexes_1(struct relation* rel, struct result* result);
-
 void update_results_filter(result *result_lists, result *tmp_list1, int index, finfo * info, qinfo *query, int pred_index);
 
 void update_interlists_filter(result *result_lists, result *combined_result, result *tmp_list1, int index, finfo *info, qinfo *temp_q, int pred_index);
 
 void update_existing_interlists(relation *rel_R, relation * rel_S, result *result_lists, finfo *info, qinfo *temp_q, int current_pred);
 
-/*Function in case of same relation in the predicate*/
+/*Function for same relation in the predicate*/
 void relation_similarity(relation *relR, relation * relS, result *result_lists, finfo *info, qinfo *query, int current_pred);
 
 void updateDifferCol(relation *relR, relation *relS, result * result_lists, finfo *info, qinfo *query, int current_pred);
 
 
+//tessting///////////////////////////
+void update_interlists_new(result *result_lists, result *combined_result, result *tmp_list1, int index_1, result *tmp_list2, int index_2, struct file_info* info, struct query_info *temp_q, int pred_index);
+
+/*Creation of relation from list*/
+void list_to_relation(struct relation* rel, struct result* result, struct file_info *info, int rel_id, uint64_t column);
+
+//tessting
 
 #endif /*utils.h*/
 

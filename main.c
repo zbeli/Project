@@ -61,6 +61,7 @@ int main(int argc, char **argv){
 
 	while((fgets(ptr, size, file)) != NULL){
 		strcpy(files[i], ptr);
+		files[i][strlen(files[i])-1] = '\0';	//testing
 		i++;
 	}
 
@@ -92,7 +93,9 @@ int main(int argc, char **argv){
 	/*Storing relations in memory*/
 	for(i = 0; i < num_of_files; i++){
 		// printf("Store relation %d\n",i);				//debug - Error-2
-		current_fl = strtok(files[i], &nl);
+		// current_fl = strtok(files[i], &nl);         //testing
+		current_fl = files[i];						   //testing
+
 		strcat(fl, current_fl);
 
 		if((bin_file = fopen(fl, "rb")) == NULL){
@@ -118,11 +121,12 @@ int main(int argc, char **argv){
 		fclose(bin_file);
 	}
 
+
     FILE *work_fp;
 	char file_path[100];
 	
 	strcpy(file_path, PATH);
-	strcat(file_path, "small.work");
+	strcat(file_path, "smallF.work");
 
 
 	if((work_fp = fopen(file_path, "r")) == NULL){
@@ -130,9 +134,6 @@ int main(int argc, char **argv){
 		exit(-1);
 	}
 
-
-	char *query;
-	size_t len=0;
 	ssize_t read;
 
 	struct query_info temp_q;
@@ -150,31 +151,34 @@ int main(int argc, char **argv){
     int query_count=0;
 
     int batch=1;
-  //   //go to the batch i want
-	    int c;
-	    int count = 1;
-	    if (my_flag != 1){
-			while(1) {
-		      c = fgetc(work_fp);
-		      if(c == 'F')
-		      	count++;
-		      if(count == my_flag){
-		        c =fgetc(work_fp);
-		      	break;
-		      }
-		      if(feof(work_fp) ) { 
-		         break ;
-		      }
-			}
-		}
+//go to the batch i want
+	 //    int c;
+	 //    int count = 1;
+	 //    if (my_flag != 1){
+		// 	while(1) {
+		//       c = fgetc(work_fp);
+		//       if(c == 'F')
+		//       	count++;
+		//       if(count == my_flag){
+		//         c = fgetc(work_fp);
+		//       	break;
+		//       }
+		//       if(feof(work_fp) ) { 
+		//          break ;
+		//       }
+		// 	}
+		// }
 
 //Time Start
     clock_t begin = clock();
     clock_t end;
 
-	while ((read = getline(&query, &len, work_fp)) !=-1 ){
+    char query[100]; 
+    int len = 100;
+	// while ((read = getline(&query, &len, work_fp)) !=-1 ){ 
+    while(fgets(query, len, work_fp) != NULL){
 
-		if(strcmp(query,"F\n")==0){		// stamataei otan diavasei F
+		if(strcmp(query,"F\n") == 0){		// stamataei otan diavasei F
 			break;
 			// if(batch == my_flag)
 			// 	break;
@@ -221,6 +225,17 @@ int main(int argc, char **argv){
 		temp_q.preds = (struct predicate*)malloc(pred_count*sizeof(struct predicate));
 		temp_q.cols_to_print = (struct rel_col_tuple*)malloc(columns_to_print_count*sizeof(struct rel_col_tuple));
 
+        //initialization
+        for(int i = 0; i < temp_q.rel_count; i++)
+           temp_q.rels[i] = -1;
+        for(int i = 0; i < pred_count; i++){
+           temp_q.preds[i].tuple_1.rel = -1;
+           temp_q.preds[i].tuple_2.rel = -1;
+           temp_q.preds[i].tuple_1.col = -1;
+           temp_q.preds[i].tuple_2.col = -1;
+        }
+        //initialization
+        
 // relations
 		i=0;
 		temp_rel = strtok(query," ");
@@ -254,16 +269,20 @@ int main(int argc, char **argv){
 		}
 
 //Query Calculation
-        calculate_query(&temp_q, info);
 
-		// if(query_count == my_flag){
-		// 	clock_t begin = clock();
-		// 	calculate_query(&temp_q, info);
-		// 	clock_t end = clock();
-		// 	double time_spent = (double)(end - begin) / CLOCKS_PER_SEC;
-		// 	printf("TIME: %lf\n", time_spent);
-		// 	break;	//debug
-		// }
+        // calculate_query(&temp_q, info);
+
+		if(query_count == my_flag){
+			clock_t begin = clock();
+			calculate_query(&temp_q, info);
+			clock_t end = clock();
+			double time_spent = (double)(end - begin) / CLOCKS_PER_SEC;
+			printf("TIME: %lf\n", time_spent);
+		    free(temp_q.rels);
+			free(temp_q.preds);
+			free(temp_q.cols_to_print);			
+			break;	//debug
+		}
 	     
 	    end = clock();
 
@@ -271,14 +290,19 @@ int main(int argc, char **argv){
 		relations_count=1;
 		columns_to_print_count=1;
 		pred_count=1;
-
+        
+        //free
+	    free(temp_q.rels);
+		free(temp_q.preds);
+		free(temp_q.cols_to_print);
 
 	}
 	fclose(work_fp);
 
-//Time end
-	double time_spent = (double)(end - begin) / CLOCKS_PER_SEC;
-	printf("\nTIME: %lf\n", time_spent);
+// Time end
+
+	// double time_spent = (double)(end - begin) / CLOCKS_PER_SEC;
+	// printf("\nTIME: %lf\n", time_spent);
 
 
 	/*Free*/
@@ -291,9 +315,6 @@ int main(int argc, char **argv){
 	for(i=0; i < num_of_files; i++){
 		free(files[i]);
 	}
-	free(temp_q.rels);
-	free(temp_q.preds);
-	free(temp_q.cols_to_print);
 
 	free(files);
 

@@ -1,8 +1,11 @@
 #include "query.h"
+#include "query_selection.h"
 
-void calculate_query(struct query_info *temp_q,  struct file_info* info){
+// #define BESTTREE
+
+void calculate_query(struct query_info *temp_q,  struct file_info* info, fstats* stats){
 	int i;
-	int num_rel = temp_q->rel_count; //number of relations in the query
+	int num_rel = temp_q->rel_count;   //number of relations in the query
 	int num_pred = temp_q->pred_count; //number of predicates in the query
 
 
@@ -23,23 +26,30 @@ void calculate_query(struct query_info *temp_q,  struct file_info* info){
 	}
 
 	struct predicate pred;  //current predicate in loop
+	int current_pred = -1;    //key of current predicate in every loop
+
 	struct relation rel_R;
 	struct relation rel_S;
 
 	result* res;
-    int current_pred = -1;    //key of current predicate in every loop! 
     int flag_exists = 0;
+
+#ifdef BESTTREE
+    int pred_select[num_pred];
+    QueryOptimization(temp_q, info, stats, pred_select);
+#endif
 
 	/*For every predicate*/
 	for(i = 0; i < num_pred; i++){
-
+#ifdef BESTTREE
+		current_pred = pred_select[i];
+#else
 	    if(i != num_pred - 1){
 	    	current_pred = calculate_priority(prior, temp_q, info, i);
 	    }else if(i == num_pred - 1){
             current_pred = prior[0].key;
 	    }
-	    // printf("\t\t\t...Predicate: %d/%d...(%d)\n", i+1, num_pred, current_pred);  //debug
-
+#endif
         //check if the same predicate exists
         if(predicate_exists(temp_q, num_pred, current_pred) == 1){
         	if(flag_exists == 1)
@@ -60,7 +70,6 @@ void calculate_query(struct query_info *temp_q,  struct file_info* info){
 				create_relation(&rel_R, info, rel_1, col_1);
 			}else{
 				/*Create relation from list*/
-
                 list_to_relation(&rel_R, &(result_lists[pred.tuple_1.rel]), info, rel_1, col_1);	
 			}
 			rel_2 = temp_q->rels[pred.tuple_2.rel];
@@ -71,13 +80,10 @@ void calculate_query(struct query_info *temp_q,  struct file_info* info){
     	    	create_relation(&rel_S, info, rel_2, col_2);
 			}else{
 				/*Create relation from list*/
-                // create_rel_from_list(&rel_S, &(result_lists[pred.tuple_2.rel]), info, rel_2, col_2);			
-                // printf("tell me about it!!!\n");	//debug	
                 list_to_relation(&rel_S, &(result_lists[pred.tuple_2.rel]), info, rel_2, col_2);
 			}
 
 			if(result_lists[pred.tuple_1.rel].start_list != NULL && result_lists[pred.tuple_2.rel].start_list != NULL){
-				// printf("$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$\n");
                 if(predicate_exists(temp_q, num_pred, current_pred) == 2){
                     free(rel_R.tuples);
                     free(rel_S.tuples);
@@ -91,30 +97,17 @@ void calculate_query(struct query_info *temp_q,  struct file_info* info){
                 	continue;
                 }
                 free(rel_R.tuples);
+                free(rel_S.tuples);
+			    create_rel_from_list(&rel_R, &(result_lists[pred.tuple_1.rel]), info, rel_1, col_1); //maybe avoid that?
+                create_rel_from_list(&rel_S, &(result_lists[pred.tuple_2.rel]), info, rel_2, col_2);				
 
-                printf("\t\t query.c SOS 2\n"); //debug
 
-			    create_rel_from_list(&rel_R, &(result_lists[pred.tuple_1.rel]), info, rel_1, col_1);
-          
                 update_existing_interlists(&rel_R, &rel_S, result_lists, info, temp_q, current_pred);
                 free(rel_R.tuples);
 	            free(rel_S.tuples);               
                 continue;
 
 			}
-			// same relation in the predicate
-
-			// if(rel_1 == rel_2){ 
-			// 	if(result_lists[pred.tuple_1.rel].start_list != NULL){
-			// 		free(rel_R.tuples);
-			//         create_rel_from_list(&rel_R, &(result_lists[pred.tuple_1.rel]), info, rel_1, col_1);
-			// 	}
-
-			// 	relation_similarity(&rel_R, &rel_S, result_lists, info, temp_q, current_pred);
-   //              free(rel_R.tuples);
-	  //           free(rel_S.tuples);				
-			// 	continue;
-			// }
 
 			res = RadixHashJoin(&rel_R, &rel_S);
 			result_init(&tmp_list1);
@@ -170,7 +163,6 @@ void calculate_query(struct query_info *temp_q,  struct file_info* info){
 
 int predicate_exists(qinfo * query, int num_pred, int current_pred){
     
-    //check if the same predicate exists
 	struct predicate *pred = &(query -> preds[current_pred]);
     int rel1=-1, rel2=-1;
     uint64_t col1=-1, col2=-1;
@@ -271,7 +263,7 @@ int calculate_priority(struct priority *prior, qinfo *query, finfo *info, int in
 			prior[i].value = rel1_value * rel2_value ;
 		}else{
 
-			/*Only one relation in the predicate*/
+			/*In case of only one relation in the predicate(filter)*/
 			prior[i].value = rel1_value;
 		}
 
@@ -280,9 +272,9 @@ int calculate_priority(struct priority *prior, qinfo *query, finfo *info, int in
 	}
 
     uint64_t min = prior[num_pred - index - 1].value;
-    int pos_min = num_pred - index - 1;               //position of min
+    int pos_min = num_pred - index - 1;      //position of min element
 
-    //no cross products please!!!
+    //no cross products!
     for(i = 0; i <= num_pred - index - 1; i++){
 	    int pred = prior[i].key;
     	int rel1 = query -> preds[pred].tuple_1.rel;
@@ -294,19 +286,18 @@ int calculate_priority(struct priority *prior, qinfo *query, finfo *info, int in
     	min = prior[i].value;
         pos_min = i;               
     }
-    //no cross products please!!!
+    //no cross products!
 
 	for(i = 0; i <= num_pred - index - 1; i++){
         if(prior[i].value < min){
-        	//no cross products please!!!
+        	//no cross products!
         	int pred = prior[i].key;
         	int rel1 = query -> preds[pred].tuple_1.rel;
         	int rel2 = query -> preds[pred].tuple_2.rel;
 
         	if(result_lists[rel1].start_list == NULL && result_lists[rel2].start_list == NULL){
-        	// if(index != 0 && result_lists[rel1].start_list == NULL && result_lists[rel2].start_list == NULL){
         		continue;}
-        	//no cross products please!!!
+        	//no cross products!
             min = prior[i].value;
             pos_min = i;
         }    
@@ -349,13 +340,14 @@ void calculate_sum(struct result* result, struct query_info *query, struct file_
         return;
     }
     printf("%llu", sum);
-
 }
 
 void print_sum(struct result* result, struct query_info *query, struct file_info *info){
 	struct result* res;
 	int rel;
 	uint64_t col;
+
+
 	for (int i = 0; i < query -> cols_count; ++i){
 		rel = query->rels[query->cols_to_print[i].rel];
 		col = query->cols_to_print[i].col;

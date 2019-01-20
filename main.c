@@ -15,12 +15,16 @@
 #include "utils.h"
 #include "parse.h"
 #include "query.h"
+#include "query_selection.h"
+
 
 #define PATH "/home/zisis/Desktop/submission/submission/workloads/small/"
 // #define PATH "/home/panos/Desktop/small/"
 
+#define BATCHES
+
 int main(int argc, char **argv){
-// int main(void){
+
 	int my_flag = atoi(argv[1]);
 	
    	int i;
@@ -47,7 +51,6 @@ int main(int argc, char **argv){
 		if(ch == '\n')
 			num_of_files++;
 	}
-	// printf("Num of files: %d\n", num_of_files);	
 
 	files = (char **)malloc(num_of_files * sizeof(char *));
 	for(i = 0; i < num_of_files; i++){
@@ -61,20 +64,13 @@ int main(int argc, char **argv){
 
 	while((fgets(ptr, size, file)) != NULL){
 		strcpy(files[i], ptr);
-		files[i][strlen(files[i])-1] = '\0';	//testing
+		files[i][strlen(files[i])-1] = '\0';
 		i++;
 	}
-
-	// // printf("FILES:\t");	
-	// for(i = 0; i < num_of_files; i++){
-	// 	 printf("%s ", files[i]);
-	// }
-	// printf("\n\n");
 
 	fclose(file);
 
 	FILE * bin_file;
-
 
 	struct file_info info[num_of_files];    	//info about the files
     struct file_stats fstats[num_of_files];    	//stats about the files
@@ -90,12 +86,12 @@ int main(int argc, char **argv){
 	int file_no = -1;
     char * current_fl;
 
+    //Time for preprocessing the data
+    clock_t begin_prepro = clock();
+
 	/*Storing relations in memory*/
 	for(i = 0; i < num_of_files; i++){
-		// printf("Store relation %d\n",i);				//debug - Error-2
-		// current_fl = strtok(files[i], &nl);         //testing
-		current_fl = files[i];						   //testing
-
+		current_fl = files[i];
 		strcat(fl, current_fl);
 
 		if((bin_file = fopen(fl, "rb")) == NULL){
@@ -115,19 +111,20 @@ int main(int argc, char **argv){
 		info[i].num_col = *(data[i]+1);
 		information_storing(&info[i], data[i], &fstats[i]);
 
-		// printf("\n%s\tTuples: %lu\t -Columns: %lu\n", files[i], info[i].num_tup, info[i].num_col);
-		// printf("%s\tTuples: %llu\t -Columns: %llu\n", files[i], info[i].num_tup, info[i].num_col);
-
 		fclose(bin_file);
 	}
+
+    //Time for the preprocessing of the data
+	clock_t end_prepro = clock();
+	double time1 = (double)(end_prepro - begin_prepro) / CLOCKS_PER_SEC;
+	printf("Preprocessing Time: %lf\n", time1);
 
 
     FILE *work_fp;
 	char file_path[100];
 	
 	strcpy(file_path, PATH);
-	strcat(file_path, "smallF.work");
-
+	strcat(file_path, "small.work");
 
 	if((work_fp = fopen(file_path, "r")) == NULL){
 		printf("Error opening the file 3!\n");
@@ -152,22 +149,24 @@ int main(int argc, char **argv){
 
     int batch=1;
 //go to the batch i want
-	 //    int c;
-	 //    int count = 1;
-	 //    if (my_flag != 1){
-		// 	while(1) {
-		//       c = fgetc(work_fp);
-		//       if(c == 'F')
-		//       	count++;
-		//       if(count == my_flag){
-		//         c = fgetc(work_fp);
-		//       	break;
-		//       }
-		//       if(feof(work_fp) ) { 
-		//          break ;
-		//       }
-		// 	}
-		// }
+#ifdef BATCHES
+	    int c;
+	    int count = 1;
+	    if (my_flag != 1){
+			while(1) {
+		      c = fgetc(work_fp);
+		      if(c == 'F')
+		      	count++;
+		      if(count == my_flag){
+		        c = fgetc(work_fp);
+		      	break;
+		      }
+		      if(feof(work_fp) ) { 
+		         break ;
+		      }
+			}
+		}
+#endif
 
 //Time Start
     clock_t begin = clock();
@@ -175,21 +174,12 @@ int main(int argc, char **argv){
 
     char query[100]; 
     int len = 100;
-	// while ((read = getline(&query, &len, work_fp)) !=-1 ){ 
+
     while(fgets(query, len, work_fp) != NULL){
 
 		if(strcmp(query,"F\n") == 0){		// stamataei otan diavasei F
-			break;
-			// if(batch == my_flag)
-			// 	break;
-			// else {
-			// 	double time_spent = (double)(end - begin) / CLOCKS_PER_SEC;
-	  //           printf("Batch %d - TIME: %lf\n",batch, time_spent);
-	  //           batch++;
-	  //           continue;
-			// 	begin = clock();
-			// }
-
+			continue;
+			//break;
 		}
 		query_count++;
 		query[strlen(query)-1]='\0';
@@ -211,12 +201,6 @@ int main(int argc, char **argv){
 				pred_count++;
 			}
 		}
-
-		// printf("%s\n",query); 
-
-		// printf("relations %d\n",relations_count);
-		// printf("columns_to_print_count %d\n",columns_to_print_count);
-		// printf("pred_count %d\n",pred_count);
 
 		temp_q.rel_count = relations_count;
 		temp_q.pred_count = pred_count;
@@ -257,7 +241,7 @@ int main(int argc, char **argv){
 			else{
 				temp_rel = strtok(NULL,"&");
 			}
-			strcpy(temp_pred, temp_rel);	// stelnw auto sthn insert logw problhmatos me strtok()
+			strcpy(temp_pred, temp_rel);
 			insert_pred(&temp_q, temp_pred, i);
 		}
 // columns
@@ -269,21 +253,23 @@ int main(int argc, char **argv){
 		}
 
 //Query Calculation
-
-        // calculate_query(&temp_q, info);
-
+#ifdef BATCHES
+        calculate_query(&temp_q, info, fstats);
+#else
 		if(query_count == my_flag){
 			clock_t begin = clock();
-			calculate_query(&temp_q, info);
+
+			calculate_query(&temp_q, info, fstats);
+
 			clock_t end = clock();
 			double time_spent = (double)(end - begin) / CLOCKS_PER_SEC;
 			printf("TIME: %lf\n", time_spent);
 		    free(temp_q.rels);
 			free(temp_q.preds);
 			free(temp_q.cols_to_print);			
-			break;	//debug
+			break;
 		}
-	     
+#endif
 	    end = clock();
 
 		field=0;
@@ -300,10 +286,10 @@ int main(int argc, char **argv){
 	fclose(work_fp);
 
 // Time end
-
-	// double time_spent = (double)(end - begin) / CLOCKS_PER_SEC;
-	// printf("\nTIME: %lf\n", time_spent);
-
+#ifdef BATCHES
+	double time_spent = (double)(end - begin) / CLOCKS_PER_SEC;
+	printf("\nTIME: %lf\n", time_spent);
+#endif
 
 	/*Free*/
 	free(data);
@@ -311,6 +297,7 @@ int main(int argc, char **argv){
 		free(info[i].col_array);
 		free(fstats[i].min_elem);
 		free(fstats[i].max_elem);
+		free(fstats[i].d);
 	}
 	for(i=0; i < num_of_files; i++){
 		free(files[i]);

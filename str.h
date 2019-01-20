@@ -12,12 +12,13 @@
 #define h1 12
 #define h2 8
 
-/*MAX number of relations in a predicate is 4!?*/
+/*Intermidiate Results */
 result result_lists[4];
 
 result sum_result ;
 
 typedef struct relation relation;
+
 /*Type definition for tuple*/
 struct tuple{
 	int32_t key;
@@ -56,8 +57,6 @@ void reorder(relation * ord_rel, relation *rel, histogram* hist, histogram* psum
 
 int h1_hash(uint32_t n);
 int h2_hash(uint32_t n);
-
-uint32_t tobinary(uint32_t x);
 
 
 /*Radix Hash Join*/

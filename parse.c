@@ -1,4 +1,11 @@
+#include <limits.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <math.h>
 #include "parse.h"
+#include "query_selection.h"
+
+#define PREPRO
 
 void information_storing(struct file_info *info, uint64_t * data, struct file_stats * fstats){
 	int i, j;
@@ -7,12 +14,20 @@ void information_storing(struct file_info *info, uint64_t * data, struct file_st
 
 	info -> col_array = (uint64_t**)malloc((num_col)*sizeof(uint64_t*));
 	for(i = 0; i < num_col; i++){
-		info -> col_array[i] = (data + i*(info->num_tup) + 2);
+		info -> col_array[i] = (data + i*(info->num_tup) + 2);	//pointers to the beginning of the columns
 	}
 
+	unsigned char *bitv; /*bit vector*/
+
+    fstats -> f = num_tup;
+    fstats -> num_col = num_col;
     fstats -> min_elem = (uint64_t*)malloc((num_col)*sizeof(uint64_t));
     fstats -> max_elem = (uint64_t*)malloc((num_col)*sizeof(uint64_t));
+    fstats -> d = (uint64_t*)malloc((num_col)*sizeof(uint64_t));
+
+#ifdef PREPRO
     uint64_t min, max, *tmp;
+    /*For every column of the relation*/
     for(i = 0; i < num_col; i++){
     	min = *(info -> col_array[i]);
     	max = *(info -> col_array[i]);
@@ -27,8 +42,41 @@ void information_storing(struct file_info *info, uint64_t * data, struct file_st
     	}
     	fstats -> min_elem[i] = min;
     	fstats -> max_elem[i] = max;
-    }
+
+    	/*Distinct Elements*/
+        uint64_t l = min;
+        uint64_t u = max;
+
+        uint64_t bv_size = (u - l + 1)/CHAR_BIT+1;	
+
+        bitv = (unsigned char*)malloc(bv_size*sizeof(unsigned char));
+
+        /*Initialization of bit array*/
+        uint64_t bit_array_size = (u-l+1);
+
+        for(int j = 0; j < bit_array_size; j++){
+            clear_bit(bitv, j);
+        }
+
+        for (int j = 0; j < num_tup; j++){
+            set_bit(bitv, llabs(*(tmp + j) - l));
+        }
+
+        uint64_t sum_distinct = 0;
+        for (int j = 0; j < bit_array_size; ++j){
+            sum_distinct += check_bit(bitv, j);
+        }
+        fstats -> d[i] = sum_distinct;
+        
+        free(bitv);
+
+    }/*For every column of the relation*/
+#endif
+
+
 }
+
+
 
 void print_query_info(struct query_info* query){
 	printf("Sxeseis %d\n", query->rel_count);
@@ -88,3 +136,4 @@ void insert_pred(struct query_info* query, char* pred, int index){
 		query->preds[index].flag = -1;
 	}
 }
+

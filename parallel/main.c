@@ -298,11 +298,11 @@ int main(int argc, char **argv){
 // Time end
 #ifdef BATCHES    
 	double time_spent = (double)(end - begin) / CLOCKS_PER_SEC;
-	printf("\nTIME: %lf\n", time_spent);
+// 	printf("\nTIME: %lf\n", time_spent);
 
 	elapsed = finish.tv_sec - start.tv_sec;
 	elapsed += (finish.tv_nsec - start.tv_nsec)/1000000000.0;
-	printf("\nTIME MONOTONIC: %lf\n", elapsed);
+	printf("\nTIME: %lf\n", elapsed);
 #endif
 	/*Free*/
 	free(data);

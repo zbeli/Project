@@ -8,4 +8,4 @@ join: main.o str.o result.o utils.o parse.o query.o query_selection.o
 	$(CC) -o join main.o str.o result.o utils.o parse.o query.o query_selection.o -lm
 
 clean :
-rm -f *.o join
+	rm -f *.o join

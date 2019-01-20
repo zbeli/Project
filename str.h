@@ -5,13 +5,17 @@
 #include <stdlib.h>
 #include <stdint.h>
 #include <math.h>
+#include <string.h>
 
 #include "result.h"
+#include "job_scheduler.h"
+#include "thread_pool.h"
 
 
-#define h1 12
-#define h2 8
+#define h1 8
+#define h2 6
 
+result results;
 /*MAX number of relations in a predicate is 4!?*/
 result result_lists[4];
 
@@ -46,22 +50,21 @@ struct chain{
 	int32_t num_tuples;
 };
 
-
-void create_histogram(histogram* histogram, relation *rel);
-void create_psum(histogram* psum,histogram * histogram, relation *rel);
-void reorder(relation * ord_rel, relation *rel, histogram* hist, histogram* psum);
-
-
 /*Hash functions*/
-
 int h1_hash(uint32_t n);
 int h2_hash(uint32_t n);
 
-uint32_t tobinary(uint32_t x);
+// uint32_t tobinary(uint32_t x);
 
 
 /*Radix Hash Join*/
-result* RadixHashJoin(relation *relR, relation* relS);
+result* RadixHashJoin(relation *relR, relation* relS, struct thrd_pool *temp);
 
+/* kanei push ta jobs  gia thn dhmiourgia twn hist*/
+int Hist_and_Psum();
+/* kanei push ta jobs gia thn sumplhrwsh tou ordered relation*/
+int ReOrdered();
+/* kanei push ta jobs pou kanoun to radix hash join gia kathe bucket */
+int Join();
 
 #endif /*str.h*/

@@ -15,12 +15,15 @@
 #include "utils.h"
 #include "parse.h"
 #include "query.h"
+#include "thread_pool.h"
+#include "job_scheduler.h"
+#include "query_selection.h"
 
-#define PATH "/home/zisis/Desktop/submission/submission/workloads/small/"
-// #define PATH "/home/panos/Desktop/small/"
+// #define PATH "/home/zisis/Desktop/submission/submission/workloads/small/"
+#define PATH "small/"
+#define BATCHES
 
 int main(int argc, char **argv){
-// int main(void){
 	int my_flag = atoi(argv[1]);
 	
    	int i;
@@ -46,8 +49,7 @@ int main(int argc, char **argv){
 	while((ch = fgetc(file)) != EOF){
 		if(ch == '\n')
 			num_of_files++;
-	}
-	// printf("Num of files: %d\n", num_of_files);	
+	}	
 
 	files = (char **)malloc(num_of_files * sizeof(char *));
 	for(i = 0; i < num_of_files; i++){
@@ -61,14 +63,9 @@ int main(int argc, char **argv){
 
 	while((fgets(ptr, size, file)) != NULL){
 		strcpy(files[i], ptr);
+		files[i][strlen(files[i])-1] = '\0';
 		i++;
 	}
-
-	// // printf("FILES:\t");	
-	// for(i = 0; i < num_of_files; i++){
-	// 	 printf("%s ", files[i]);
-	// }
-	// printf("\n\n");
 
 	fclose(file);
 
@@ -89,10 +86,12 @@ int main(int argc, char **argv){
 	int file_no = -1;
     char * current_fl;
 
+    //Time for preprocessing the data
+    clock_t begin_prepro = clock();
+
 	/*Storing relations in memory*/
 	for(i = 0; i < num_of_files; i++){
-		// printf("Store relation %d\n",i);				//debug - Error-2
-		current_fl = strtok(files[i], &nl);
+		current_fl = files[i];	
 		strcat(fl, current_fl);
 
 		if((bin_file = fopen(fl, "rb")) == NULL){
@@ -112,12 +111,13 @@ int main(int argc, char **argv){
 		info[i].num_col = *(data[i]+1);
 		information_storing(&info[i], data[i], &fstats[i]);
 
-		// printf("\n%s\tTuples: %lu\t -Columns: %lu\n", files[i], info[i].num_tup, info[i].num_col);
-		// printf("%s\tTuples: %llu\t -Columns: %llu\n", files[i], info[i].num_tup, info[i].num_col);
-
-
 		fclose(bin_file);
 	}
+    //Time for the preprocessing of the data
+	clock_t end_prepro = clock();
+	double time1 = (double)(end_prepro - begin_prepro) / CLOCKS_PER_SEC;
+	printf("Preprocessing Time: %lf\n", time1);
+
 
     FILE *work_fp;
 	char file_path[100];
@@ -131,9 +131,6 @@ int main(int argc, char **argv){
 		exit(-1);
 	}
 
-
-	char *query;
-	size_t len=0;
 	ssize_t read;
 
 	struct query_info temp_q;
@@ -151,7 +148,8 @@ int main(int argc, char **argv){
     int query_count=0;
 
     int batch=1;
-  //   //go to the batch i want
+//go to the batch i want
+#ifdef BATCHES
 	    int c;
 	    int count = 1;
 	    if (my_flag != 1){
@@ -160,7 +158,7 @@ int main(int argc, char **argv){
 		      if(c == 'F')
 		      	count++;
 		      if(count == my_flag){
-		        c =fgetc(work_fp);
+		        c = fgetc(work_fp);
 		      	break;
 		      }
 		      if(feof(work_fp) ) { 
@@ -168,25 +166,28 @@ int main(int argc, char **argv){
 		      }
 			}
 		}
+#endif
 
 //Time Start
-    clock_t begin = clock();
     clock_t end;
 
-	while ((read = getline(&query, &len, work_fp)) !=-1 ){
+    struct timespec start, finish;
+    double elapsed;
 
-		if(strcmp(query,"F\n")==0){		// stamataei otan diavasei F
+    char query[100]; 
+    int len = 100;
+
+	struct thrd_pool thread_pool;
+	thrd_pool_create(&thread_pool);
+	thrd_pool_sleep(&thread_pool);
+
+	clock_t begin = clock();
+	clock_gettime(CLOCK_MONOTONIC, &start);
+
+    while(fgets(query, len, work_fp) != NULL){
+
+		if(strcmp(query,"F\n") == 0){		// stamataei otan diavasei F
 			break;
-			// if(batch == my_flag)
-			// 	break;
-			// else {
-			// 	double time_spent = (double)(end - begin) / CLOCKS_PER_SEC;
-	  //           printf("Batch %d - TIME: %lf\n",batch, time_spent);
-	  //           batch++;
-	  //           continue;
-			// 	begin = clock();
-			// }
-
 		}
 		query_count++;
 		query[strlen(query)-1]='\0';
@@ -209,12 +210,6 @@ int main(int argc, char **argv){
 			}
 		}
 
-		// printf("%s\n",query); 
-
-		// printf("relations %d\n",relations_count);
-		// printf("columns_to_print_count %d\n",columns_to_print_count);
-		// printf("pred_count %d\n",pred_count);
-
 		temp_q.rel_count = relations_count;
 		temp_q.pred_count = pred_count;
 		temp_q.cols_count = columns_to_print_count;
@@ -222,6 +217,17 @@ int main(int argc, char **argv){
 		temp_q.preds = (struct predicate*)malloc(pred_count*sizeof(struct predicate));
 		temp_q.cols_to_print = (struct rel_col_tuple*)malloc(columns_to_print_count*sizeof(struct rel_col_tuple));
 
+        //initialization
+        for(int i = 0; i < temp_q.rel_count; i++)
+           temp_q.rels[i] = -1;
+        for(int i = 0; i < pred_count; i++){
+           temp_q.preds[i].tuple_1.rel = -1;
+           temp_q.preds[i].tuple_2.rel = -1;
+           temp_q.preds[i].tuple_1.col = -1;
+           temp_q.preds[i].tuple_2.col = -1;
+        }
+        //initialization
+        
 // relations
 		i=0;
 		temp_rel = strtok(query," ");
@@ -255,46 +261,60 @@ int main(int argc, char **argv){
 		}
 
 //Query Calculation
-        calculate_query(&temp_q, info);
-
-		// if(query_count == my_flag){
-		// 	clock_t begin = clock();
-		// 	calculate_query(&temp_q, info);
-		// 	clock_t end = clock();
-		// 	double time_spent = (double)(end - begin) / CLOCKS_PER_SEC;
-		// 	printf("TIME: %lf\n", time_spent);
-		// 	break;	//debug
-		// }
+#ifdef BATCHES
+        calculate_query(&temp_q, info, &thread_pool, fstats);
+#else
+		if(query_count == my_flag){
+			clock_t begin = clock();
+			calculate_query(&temp_q, info, &thread_pool, fstats);
+			clock_t end = clock();
+			double time_spent = (double)(end - begin) / CLOCKS_PER_SEC;
+			printf("TIME: %lf\n", time_spent);
+		    free(temp_q.rels);
+			free(temp_q.preds);
+			free(temp_q.cols_to_print);			
+			break;
+		}
+#endif
 	     
-	    end = clock();
+        end = clock();
+		clock_gettime(CLOCK_MONOTONIC, &finish);
 
 		field=0;
 		relations_count=1;
 		columns_to_print_count=1;
 		pred_count=1;
-
+        
+        //free
+	    free(temp_q.rels);
+		free(temp_q.preds);
+		free(temp_q.cols_to_print);
 
 	}
-	fclose(work_fp);
 
-//Time end
+	fclose(work_fp);
+    thrd_pool_wake(&thread_pool);
+    thrd_pool_destroy(&thread_pool);
+// Time end
+#ifdef BATCHES    
 	double time_spent = (double)(end - begin) / CLOCKS_PER_SEC;
 	printf("\nTIME: %lf\n", time_spent);
 
-
+	elapsed = finish.tv_sec - start.tv_sec;
+	elapsed += (finish.tv_nsec - start.tv_nsec)/1000000000.0;
+	printf("\nTIME MONOTONIC: %lf\n", elapsed);
+#endif
 	/*Free*/
 	free(data);
 	for(i = 0; i < num_of_files; i++){
 		free(info[i].col_array);
 		free(fstats[i].min_elem);
 		free(fstats[i].max_elem);
+		free(fstats[i].d);
 	}
 	for(i=0; i < num_of_files; i++){
 		free(files[i]);
 	}
-	free(temp_q.rels);
-	free(temp_q.preds);
-	free(temp_q.cols_to_print);
 
 	free(files);
 

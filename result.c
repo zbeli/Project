@@ -8,7 +8,8 @@ void result_init(result* result){
 	result->start_list -> buffer = result->start_list -> buffer_start;		
 	result->start_list -> next = NULL; 
 	result->list_size = 1;
-
+    
+    result->current_node = result->start_list;
 	result->counter = 0;
 }
 
@@ -18,18 +19,10 @@ void insert_result(int rowR, int rowS ,result* result){
 	int i;
 	int * ptr;
 	struct node *current_node;
-	current_node = result->start_list;
-
-	//Go to the current bucket 
-	for (i = 1; i < result->list_size; i++){
-		if(current_node -> next != NULL){
-			current_node = current_node -> next;
-		}
-	}
+    current_node = result->current_node;
 
 	// Allocate new bucket if necessary
 	if(current_node -> buffer_end - current_node->buffer < 2*sizeof(int)){
-		//printf("New bucket\n");
 
 		current_node -> next = (struct node*)malloc(sizeof(struct node));
 		current_node -> next -> buffer_start = (void*)malloc(BUFFER);
@@ -41,7 +34,7 @@ void insert_result(int rowR, int rowS ,result* result){
 		current_node -> next = NULL;
 
 		result->list_size++;
-
+        result->current_node = current_node;
 	}
 
 	ptr = current_node -> buffer;
@@ -56,23 +49,14 @@ void insert_result(int rowR, int rowS ,result* result){
 
 }
 
-/////////////////////////////////////////////////////////////////////
 void insert_inter(int row, result* result){
 	int i;
 	int * ptr;
 	struct node *current_node;
-	current_node = result->start_list;
-
-	//Go to the current bucket 
-	for (i = 1; i < result->list_size; i++){
-		if(current_node -> next != NULL){
-			current_node = current_node -> next;
-		}
-	}
+    current_node = result->current_node;
 
 	// Allocate new bucket if necessary
 	if(current_node -> buffer_end - current_node->buffer < sizeof(int)){
-		// printf("New bucket\n");
 
 		current_node -> next = (struct node*)malloc(sizeof(struct node));
 		current_node -> next -> buffer_start = (void*)malloc(BUFFER);
@@ -84,7 +68,7 @@ void insert_inter(int row, result* result){
 		current_node -> next = NULL;
 
 		result->list_size++;
-
+        result->current_node = current_node;
 	}
 
 	ptr = current_node -> buffer;
